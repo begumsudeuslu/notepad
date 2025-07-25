@@ -1,9 +1,6 @@
 //lib/main.dart
 import 'package:flutter/material.dart';
-
-//MainScreen dosyasını import et
-import 'package:notepad/screens/main_screen.dart';
-
+import 'screens/home_screen.dart'; // HomeScreen dosyanın yolu (dosyanın konumuna göre güncelle)
 
 void main() {
   runApp(const MyApp());
@@ -16,12 +13,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'My Notes & Tasks App',
+      debugShowCheckedModeBanner: false, // Sağ üstteki debug yazısını kaldırır
+      title: 'Notepad App',
       theme: ThemeData(
         primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
+        useMaterial3: false, // Material 3 kullanmak istersen true yap
       ),
-      home: const MainScreen(), // Şimdi hata vermeyecek
+      home: HomeScreen(), // Başlangıç ekranı
     );
   }
 }
