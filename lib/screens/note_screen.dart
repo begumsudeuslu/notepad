@@ -8,7 +8,10 @@ class NoteScreen extends StatefulWidget {
 class _NoteScreenState extends State<NoteScreen> {
   int _selectedIndex = 0;
 
-  // Bottom bar butonları için ikon ve label listesi
+  // Not listesi (şimdilik string olarak içerik)
+  final List<String> _notes = [];
+
+  // Bottom bar butonları
   final List<BottomNavigationBarItem> _items = [
     BottomNavigationBarItem(icon: Icon(Icons.note), label: 'Not'),
     BottomNavigationBarItem(icon: Icon(Icons.check_circle), label: 'Görev'),
@@ -21,6 +24,44 @@ class _NoteScreenState extends State<NoteScreen> {
     });
   }
 
+  void _addNote() {
+    setState(() {
+      // Geçici not içeriği
+      _notes.add("Yeni not #${_notes.length + 1}");
+    });
+  }
+
+  Widget _buildNotesList() {
+    if (_notes.isEmpty) {
+      return Center(
+        child: Text(
+          'Henüz not yok. ➕ simgesine tıklayarak not ekleyebilirsin.',
+          style: TextStyle(fontSize: 18, color: Colors.grey),
+          textAlign: TextAlign.center,
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: EdgeInsets.all(12),
+      itemCount: _notes.length,
+      itemBuilder: (context, index) {
+        return Card(
+          elevation: 4,
+          margin: EdgeInsets.symmetric(vertical: 8),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text(
+              _notes[index],
+              style: TextStyle(fontSize: 18),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -29,12 +70,7 @@ class _NoteScreenState extends State<NoteScreen> {
         centerTitle: true,
         backgroundColor: Colors.blue,
       ),
-      body: Center(
-        child: Text(
-          'Seçili sekme: ${_items[_selectedIndex].label}',
-          style: TextStyle(fontSize: 20),
-        ),
-      ),
+      body: _buildNotesList(),
       bottomNavigationBar: BottomNavigationBar(
         items: _items,
         currentIndex: _selectedIndex,
@@ -43,11 +79,9 @@ class _NoteScreenState extends State<NoteScreen> {
         onTap: _onItemTapped,
       ),
       floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 70), // 40px yukarı kaydır
+        padding: const EdgeInsets.only(bottom: 70),
         child: FloatingActionButton(
-          onPressed: () {
-            print("Yeni not/görev ekle");
-          },
+          onPressed: _addNote,
           child: Icon(Icons.add),
           backgroundColor: Colors.blue,
         ),
