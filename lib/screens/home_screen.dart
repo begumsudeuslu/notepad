@@ -52,17 +52,17 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButton: (_selectedIndex == 0 || _selectedIndex == 1)
           ? FloatingActionButton(
               onPressed: () {
-                if (_selectedIndex == 0) {
-                  print("Yeni Not Ekle");
-                } else if (_selectedIndex == 1) {
-                  print("Yeni Görev Ekle");
-                }
+                // Fonksiyon
               },
-              backgroundColor: Colors.blue,
-              child: const Icon(Icons.add),
+              backgroundColor: Colors.blueAccent,
+              elevation: 8,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Icon(Icons.add, size: 30),
             )
           : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }

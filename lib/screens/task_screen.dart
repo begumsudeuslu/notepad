@@ -8,7 +8,6 @@ class TasksScreen extends StatefulWidget {
 }
 
 class _TasksScreenState extends State<TasksScreen> {
-  // Görevler listesi
   final List<Map<String, dynamic>> _tasks = [
     {'title': 'Market alışverişi', 'done': false},
     {'title': 'Ders çalış', 'done': true},
@@ -59,44 +58,33 @@ class _TasksScreenState extends State<TasksScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Görevlerim'),
-        backgroundColor: Colors.blue,
-      ),
-      body: ListView.builder(
-        itemCount: _tasks.length,
-        itemBuilder: (context, index) {
-          final task = _tasks[index];
-          return Card(
-            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            child: ListTile(
-              leading: Checkbox(
-                value: task['done'],
-                onChanged: (value) => _toggleTask(index),
-              ),
-              title: Text(
-                task['title'],
-                style: TextStyle(
-                  fontSize: 18,
-                  decoration: task['done']
-                      ? TextDecoration.lineThrough
-                      : TextDecoration.none,
-                ),
-              ),
-              trailing: IconButton(
-                icon: const Icon(Icons.delete, color: Colors.red),
-                onPressed: () => _deleteTask(index),
+    return ListView.builder(
+      itemCount: _tasks.length,
+      itemBuilder: (context, index) {
+        final task = _tasks[index];
+        return Card(
+          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          child: ListTile(
+            leading: Checkbox(
+              value: task['done'],
+              onChanged: (value) => _toggleTask(index),
+            ),
+            title: Text(
+              task['title'],
+              style: TextStyle(
+                fontSize: 18,
+                decoration: task['done']
+                    ? TextDecoration.lineThrough
+                    : TextDecoration.none,
               ),
             ),
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showAddTaskDialog,
-        backgroundColor: Colors.blue,
-        child: const Icon(Icons.add),
-      ),
+            trailing: IconButton(
+              icon: const Icon(Icons.delete, color: Colors.red),
+              onPressed: () => _deleteTask(index),
+            ),
+          ),
+        );
+      },
     );
   }
 }
