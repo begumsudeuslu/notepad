@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/home_screen.dart'; // HomeScreen dosyanın yolu (dosyanın konumuna göre güncelle)
+import 'screens/note_screen.dart'; // HomeScreen dosyanın yolu (dosyanın konumuna göre güncelle)
 
 void main() {
   runApp(const MyApp());
@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         useMaterial3: false, // Material 3 kullanmak istersen true yap
       ),
-      home: HomeScreen(), // Başlangıç ekranı
+      home: NoteScreen(), // Başlangıç ekranı
     );
   }
 }
