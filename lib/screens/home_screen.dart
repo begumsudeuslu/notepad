@@ -43,13 +43,15 @@ class _HomeScreenState extends State<HomeScreen> {
         unselectedItemColor: Colors.grey,
         onTap: _onItemTapped,
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // + butonuna basıldığında yapılacak işlemler buraya
-          print("Yeni not/görev ekle");
-        },
-        child: Icon(Icons.add),
-        backgroundColor: Colors.blue,
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 50), // 40px yukarı kaydır
+        child: FloatingActionButton(
+          onPressed: () {
+            print("Yeni not/görev ekle");
+          },
+          child: Icon(Icons.add),
+          backgroundColor: Colors.blue,
+        ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
     );
