@@ -1,29 +1,25 @@
 import 'package:flutter/material.dart';
 
 class NoteScreen extends StatefulWidget {
+  // Yeni: Not ekleme callback'i (şu anlık kullanılmıyor ama durabilir)
+  final VoidCallback? onAddNote;
+
+  const NoteScreen({Key? key, this.onAddNote}) : super(key: key);
+
   @override
-  _NoteScreenState createState() => _NoteScreenState();
+  // _NoteScreenState'i NoteScreenState olarak değiştiriyoruz.
+  // Artık dışarıdan erişilebilir olacak.
+  NoteScreenState createState() => NoteScreenState();
 }
 
-class _NoteScreenState extends State<NoteScreen> {
-  int _selectedIndex = 0;
-  bool _selectionMode = false; // Seçim modu aktif mi?
+// _NoteScreenState'i NoteScreenState olarak değiştiriyoruz.
+class NoteScreenState extends State<NoteScreen> {
+  bool _selectionMode = false;
   final List<String> _notes = [];
-  final Set<int> _selectedNotes = {}; // Seçilen notların index'leri
+  final Set<int> _selectedNotes = {};
 
-  final List<BottomNavigationBarItem> _items = [
-    BottomNavigationBarItem(icon: Icon(Icons.note), label: 'Not'),
-    BottomNavigationBarItem(icon: Icon(Icons.check_circle), label: 'Görev'),
-    BottomNavigationBarItem(icon: Icon(Icons.group), label: 'Users'),
-  ];
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-
-  void _addNote() {
+  // Public metot: HomeScreen'den çağrılacak.
+  void addNoteFromExternal() {
     setState(() {
       _notes.add("Yeni not #${_notes.length + 1}");
     });
@@ -31,8 +27,10 @@ class _NoteScreenState extends State<NoteScreen> {
 
   void _onLongPress(int index) {
     setState(() {
-      _selectionMode = true;
-      _selectedNotes.add(index);
+      if (!_selectionMode) {
+        _selectionMode = true;
+      }
+      _onSelectToggle(index);
     });
   }
 
@@ -42,6 +40,9 @@ class _NoteScreenState extends State<NoteScreen> {
         _selectedNotes.remove(index);
       } else {
         _selectedNotes.add(index);
+      }
+      if (_selectedNotes.isEmpty && _selectionMode) {
+        _selectionMode = false;
       }
     });
   }
@@ -57,26 +58,26 @@ class _NoteScreenState extends State<NoteScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text("Notları Sil"),
-        content: Text("Seçilen notları silmek istediğinize emin misiniz?"),
+        title: const Text("Notları Sil"),
+        content: const Text("Seçilen notları silmek istediğinize emin misiniz?"),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(), // Hayır
-            child: Text("Hayır"),
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text("Hayır"),
           ),
           TextButton(
             onPressed: () {
               setState(() {
                 final sortedIndexes = _selectedNotes.toList()..sort((a, b) => b.compareTo(a));
-for (var index in sortedIndexes) {
-  _notes.removeAt(index);
-}
+                for (var index in sortedIndexes) {
+                  _notes.removeAt(index);
+                }
                 _selectedNotes.clear();
                 _selectionMode = false;
               });
-              Navigator.of(context).pop(); // Diyaloğu kapat
+              Navigator.of(context).pop();
             },
-            child: Text("Evet", style: TextStyle(color: Colors.red)),
+            child: const Text("Evet", style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -88,7 +89,7 @@ for (var index in sortedIndexes) {
       return Center(
         child: Text(
           'Henüz not yok. ➕ simgesine tıklayarak not ekleyebilirsin.',
-          style: TextStyle(fontSize: 18, color: Colors.grey),
+          style: const TextStyle(fontSize: 18, color: Colors.grey),
           textAlign: TextAlign.center,
         ),
       );
@@ -97,31 +98,37 @@ for (var index in sortedIndexes) {
     return GestureDetector(
       onTap: () {
         if (_selectionMode) {
-          _exitSelectionMode(); // Seçim modunu kapat
+          _exitSelectionMode();
         }
       },
       child: ListView.builder(
-        padding: EdgeInsets.all(12),
+        padding: const EdgeInsets.all(12),
         itemCount: _notes.length,
         itemBuilder: (context, index) {
           final selected = _selectedNotes.contains(index);
 
           return GestureDetector(
             onLongPress: () => _onLongPress(index),
+            onTap: () {
+              if (_selectionMode) {
+                _onSelectToggle(index);
+              }
+            },
             child: Card(
               elevation: 3,
-              margin: EdgeInsets.symmetric(vertical: 8),
+              margin: const EdgeInsets.symmetric(vertical: 8),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              color: selected ? Colors.blue.withOpacity(0.2) : null,
               child: ListTile(
                 title: Text(
                   _notes[index],
-                  style: TextStyle(fontSize: 18),
+                  style: const TextStyle(fontSize: 18),
                 ),
                 trailing: _selectionMode
                     ? Checkbox(
                         value: selected,
                         onChanged: (_) => _onSelectToggle(index),
-                        shape: CircleBorder(),
+                        shape: const CircleBorder(),
                         activeColor: Colors.blue,
                       )
                     : null,
@@ -133,48 +140,27 @@ for (var index in sortedIndexes) {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Notepad'),
-        centerTitle: true,
-        backgroundColor: Colors.blue,
-        actions: [
-          if (_selectionMode)
-            IconButton(
-              icon: Icon(Icons.delete),
-              onPressed: _deleteSelectedNotes,
-              tooltip: 'Seçilenleri Sil',
-            )
-        ],
-        leading: _selectionMode
-            ? IconButton(
-                icon: Icon(Icons.close),
+      appBar: _selectionMode
+          ? AppBar(
+              backgroundColor: Colors.blue,
+              leading: IconButton(
+                icon: const Icon(Icons.close),
                 onPressed: _exitSelectionMode,
-              )
-            : null,
-      ),
-      body: _buildNotesList(),
-      bottomNavigationBar: BottomNavigationBar(
-        items: _items,
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.blue,
-        unselectedItemColor: Colors.grey,
-        onTap: _onItemTapped,
-      ),
-      floatingActionButton: !_selectionMode
-          ? Padding(
-              padding: const EdgeInsets.only(bottom: 70),
-              child: FloatingActionButton(
-                onPressed: _addNote,
-                child: Icon(Icons.add),
-                backgroundColor: Colors.blue,
               ),
+              title: Text('${_selectedNotes.length} Seçildi'),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: _deleteSelectedNotes,
+                  tooltip: 'Seçilenleri Sil',
+                )
+              ],
             )
           : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
+      body: _buildNotesList(),
     );
   }
 }
