@@ -44,7 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: _onItemTapped,
       ),
       floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 50), // 40px yukarı kaydır
+        padding: const EdgeInsets.only(bottom: 70), // 40px yukarı kaydır
         child: FloatingActionButton(
           onPressed: () {
             print("Yeni not/görev ekle");
