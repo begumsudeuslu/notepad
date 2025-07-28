@@ -4,31 +4,15 @@ class TasksScreen extends StatefulWidget {
   const TasksScreen({super.key});
 
   @override
-  _TasksScreenState createState() => _TasksScreenState();
+  TasksScreenState createState() => TasksScreenState();
 }
 
-class _TasksScreenState extends State<TasksScreen> {
-  final List<Map<String, dynamic>> _tasks = [
-    {'title': 'Market alışverişi', 'done': false},
-    {'title': 'Ders çalış', 'done': true},
-  ];
+class TasksScreenState extends State<TasksScreen> {
+  final List<Map<String, dynamic>> _tasks = []; // Artık başlangıçta boş
 
-  void _addTask(String title) {
-    setState(() {
-      _tasks.add({'title': title, 'done': false});
-    });
-  }
-
-  void _toggleTask(int index) {
-    setState(() {
-      _tasks[index]['done'] = !_tasks[index]['done'];
-    });
-  }
-
-  void _deleteTask(int index) {
-    setState(() {
-      _tasks.removeAt(index);
-    });
+  // HomeScreen'den çağrılacak görev ekleme metodu
+  void addTask() {
+    _showAddTaskDialog(); // Diyalog açılır
   }
 
   void _showAddTaskDialog() {
@@ -43,11 +27,17 @@ class _TasksScreenState extends State<TasksScreen> {
         ),
         actions: [
           TextButton(
+            onPressed: () => Navigator.pop(context), // Vazgeç
+            child: const Text('İptal'),
+          ),
+          TextButton(
             onPressed: () {
               if (newTask.isNotEmpty) {
-                _addTask(newTask);
+                setState(() {
+                  _tasks.add({'title': newTask, 'done': false});
+                });
               }
-              Navigator.pop(context);
+              Navigator.pop(context); // Diyaloğu kapat
             },
             child: const Text('Kaydet'),
           ),
@@ -56,14 +46,38 @@ class _TasksScreenState extends State<TasksScreen> {
     );
   }
 
+  void _toggleTask(int index) {
+    setState(() {
+      _tasks[index]['done'] = !_tasks[index]['done'];
+    });
+  }
+
+  void _deleteTask(int index) {
+    setState(() {
+      _tasks.removeAt(index);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_tasks.isEmpty) {
+      return const Center(
+        child: Text(
+          'Henüz görev yok. + simgesine tıklayarak görev ekleyebilirsin.',
+          style: TextStyle(fontSize: 18, color: Colors.grey),
+          textAlign: TextAlign.center,
+        ),
+      );
+    }
+
     return ListView.builder(
+      padding: const EdgeInsets.all(12),
       itemCount: _tasks.length,
       itemBuilder: (context, index) {
         final task = _tasks[index];
         return Card(
           margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          elevation: 3,
           child: ListTile(
             leading: Checkbox(
               value: task['done'],

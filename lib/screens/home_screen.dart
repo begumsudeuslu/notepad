@@ -13,13 +13,34 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
-  // Alt menüde gösterilecek sayfalar
-  final List<Widget> _pages = [NoteScreen(), TasksScreen(), AccountScreen()];
+  // Sayfaları GlobalKey ile kontrol edeceğiz
+  final GlobalKey<NoteScreenState> _noteKey = GlobalKey();
+  final GlobalKey<TasksScreenState> _taskKey = GlobalKey();
+
+  late final List<Widget> _pages;
+
+  @override
+  void initState() {
+    super.initState();
+    _pages = [
+      NoteScreen(key: _noteKey),
+      TasksScreen(key: _taskKey),
+      const AccountScreen(),
+    ];
+  }
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
+  }
+
+  void _onAddPressed() {
+    if (_selectedIndex == 0) {
+      _noteKey.currentState?.addNoteFromExternal();
+    } else if (_selectedIndex == 1) {
+      _taskKey.currentState?.addTask();
+    }
   }
 
   @override
@@ -30,7 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
         centerTitle: true,
         backgroundColor: Colors.blue,
       ),
-      body: _pages[_selectedIndex], // Seçilen ekranı göster
+      body: _pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
@@ -48,18 +69,18 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      // FAB sadece Notlar veya Görevler ekranında görünsün
       floatingActionButton: (_selectedIndex == 0 || _selectedIndex == 1)
-          ? FloatingActionButton(
-              onPressed: () {
-                // Fonksiyon
-              },
-              backgroundColor: Colors.blueAccent,
-              elevation: 8,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+          ? Padding(
+              padding: const EdgeInsets.only(bottom: 60),
+              child: FloatingActionButton(
+                onPressed: _onAddPressed,
+                backgroundColor: Colors.blueAccent,
+                elevation: 8,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Icon(Icons.add, size: 30),
               ),
-              child: const Icon(Icons.add, size: 30),
             )
           : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
