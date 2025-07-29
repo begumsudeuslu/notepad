@@ -1,10 +1,8 @@
-import 'dart:collection';
-
 import 'package:flutter/material.dart';
 
 class NoteScreen extends StatefulWidget {
   final VoidCallback? onAddNote;
-  const NoteScreen({Key? key, this.onAddNote}) : super(key: key);
+  const NoteScreen({super.key, this.onAddNote});
 
   @override
   NoteScreenState createState() { return NoteScreenState();}
@@ -18,19 +16,18 @@ class NoteScreenState extends State<NoteScreen> {
   final TextEditingController _editingController = TextEditingController();
 
 
-  /*Sayfayı çöpe atıyorsun ama içindeki bazı dosyalar hâlâ açık — dispose() onları kapatır.
-  dispose() bir temizlik zamanıdır.
-  Sayfa silinirken, içerideki özel şeylerin (controller gibi) kapatılmasını sağlar.
-  Aksi takdirde uygulama yavaşlayabilir ya da hata verir.
+  /// Sayfayı çöpe atıyorsun ama içindeki bazı dosyalar hâlâ açık — dispose() onları kapatır.
+  /// dispose() bir temizlik zamanıdır.
+  /// Sayfa silinirken, içerideki özel şeylerin (controller gibi) kapatılmasını sağlar.
+  /// Aksi takdirde uygulama yavaşlayabilir ya da hata verir.
   
-  _editingController.dispose();
-  Eğer bir TextEditingController kullanıyorsan, bu nesneyi elle kapatman gerekir.
-  Aksi takdirde, Flutter onun hâlâ bellekte olduğunu zannedip sızıntı (leak) yapabilir.
+  ///_editingController.dispose();
+  /// Eğer bir TextEditingController kullanıyorsan, bu nesneyi elle kapatman gerekir.
+  /// Aksi takdirde, Flutter onun hâlâ bellekte olduğunu zannedip sızıntı (leak) yapabilir.
 
-  super.dispose();
-  State sınıfının kendi içindeki dispose() mantığını da çalıştırır.
-  Kendi temizliğini yaptıktan sonra, Flutter'ın da gerekli temizlikleri yapmasını sağlar.
-  */
+  /// super.dispose();
+  /// State sınıfının kendi içindeki dispose() mantığını da çalıştırır.
+  /// Kendi temizliğini yaptıktan sonra, Flutter'ın da gerekli temizlikleri yapmasını sağlar.
   @override
   void dispose() {
     _editingController.dispose();
@@ -38,10 +35,10 @@ class NoteScreenState extends State<NoteScreen> {
   }
 
 
-  /**
-   * setState(): ekranda bir şey değişti yeniden çiz
-   * notes: notların içeriğini tutar
-   */
+  //
+  // setState(): ekranda bir şey değişti yeniden çiz
+  // notes: notların içeriğini tutar
+  //
   void addNoteFromExternal() {
     setState(() {
       _notes.add("Yeni not #${_notes.length + 1}");
@@ -49,9 +46,7 @@ class NoteScreenState extends State<NoteScreen> {
   }
 
 
-  /**
-   * _editingIndex!: bull-safety işareti, _editingIndex'in null olmadığına eminim (yukarıdaki if ile)
-   */
+  /// _editingIndex!: bull-safety işareti, _editingIndex'in null olmadığına eminim (yukarıdaki if ile)
   void _saveEditedNote() {
     if (_editingIndex != null) {   //şu an düzenlenen not olup olmadığına bakar
       setState(() {
@@ -63,10 +58,8 @@ class NoteScreenState extends State<NoteScreen> {
   }
 
 
-  /**
-   * seçilen note eğer zaten selectedNotestaysa yani önceden seçilmişse kaldır, değilse ekle
-   * eğer selectedNotes boşsa ve selection_mode ona rağmen açıksa kapat(selection_mode is false) 
-   */
+  /// seçilen note eğer zaten selectedNotestaysa yani önceden seçilmişse kaldır, değilse ekle
+  /// eğer selectedNotes boşsa ve selection_mode ona rağmen açıksa kapat(selection_mode is false) 
   void _onSelectToggle(int index) {
     setState(() {
       if (_selectedNotes.contains(index)) {
@@ -81,9 +74,7 @@ class NoteScreenState extends State<NoteScreen> {
   } 
 
 
-  /**
-   * uzun süre basıldığında selection modu açar ama avrsayalım ki bir notu düzenlerken başka bir nota uzun süre bastım, düzenlediğim notu kaydeder
-   */
+  /// uzun süre basıldığında selection modu açar ama avrsayalım ki bir notu düzenlerken başka bir nota uzun süre bastım, düzenlediğim notu kaydeder
   void _onLongPress(int index) {
     if (_editingIndex != null) {
       _saveEditedNote(); // Düzenleme modundaysa kaydet
@@ -96,9 +87,7 @@ class NoteScreenState extends State<NoteScreen> {
     });
   }
 
-  /**
-   * seçim modundan çıkar ve seçilen notları temizler
-   */
+  /// seçim modundan çıkar ve seçilen notları temizler
   void _exitSelectionMode() {
     setState(() {
       _selectionMode = false;
@@ -109,9 +98,7 @@ class NoteScreenState extends State<NoteScreen> {
   }
 
 
-  /**
-   * seçili notları sil
-   */
+  /// seçili notları sil
   void _deleteSelectedNotes() {
     showDialog(       // ekrana küçük bir pencere açar
       context: context,
@@ -145,9 +132,7 @@ class NoteScreenState extends State<NoteScreen> {
   }
 
 
-  /**
-   * notları düzenleme aşamasındaki yönlendirme
-   */
+  /// notları düzenleme aşamasındaki yönlendirme
   void _onNoteTap(int index) {
     if (_selectionMode) {   // eğer seçim modundaysa
       _onSelectToggle(index);   // ekle/kaldır
@@ -169,9 +154,7 @@ class NoteScreenState extends State<NoteScreen> {
     }
   }
 
-  /**
-   * herhangi bir not yoksa
-   */
+  /// herhangi bir not yoksa
   Widget _buildEmptyNotesMessage()  {
     return Center(
       child: Text(
@@ -182,9 +165,7 @@ class NoteScreenState extends State<NoteScreen> {
     );
   }
 
-  /**
-   * Her bir not kartını oluşturan fonksiyon
-   */
+  /// Her bir not kartını oluşturan fonksiyon
   Widget _buildNoteCard(BuildContext context, int index, bool selected, bool isEditing) {
     return GestureDetector(
       onLongPress: () => _onLongPress(index),  // uzun basıllınca çoklu seçim moduna geçmek 
@@ -212,9 +193,7 @@ class NoteScreenState extends State<NoteScreen> {
   }
 
 
-  /**
-   * Not düzenleme modundayken gösterilecek görünümü oluşturan fonksiyon
-   */
+  /// Not düzenleme modundayken gösterilecek görünümü oluşturan fonksiyon
   Widget _buildEditingNoteView() {
     return Column(  // düzenleniyorsa
       crossAxisAlignment: CrossAxisAlignment.stretch,   /// alt elemanları yatayda tam genişliğe uzatır (özellikle buton için)
@@ -249,9 +228,7 @@ class NoteScreenState extends State<NoteScreen> {
     );
   }
 
-  /**
-   * Not görüntüleme modundayken gösterilecek görünümü oluşturan fonksiyon 
-  */
+  /// Not görüntüleme modundayken gösterilecek görünümü oluşturan fonksiyon 
   Widget _buildDisplayNoteView(int index, bool selected) {
     return ListTile(          // when isEditing is false, sadece görüntüle
       // leaading, title, trailing
@@ -275,9 +252,7 @@ class NoteScreenState extends State<NoteScreen> {
 
 
 
-  /**
-   * Ana Not Listesi Oluşturucu
-   */
+  /// Ana Not Listesi Oluşturucu
   Widget _buildNotesList() {
     if (_notes.isEmpty) {     // herhangi bir not yoksa
       return _buildEmptyNotesMessage();
@@ -303,9 +278,7 @@ class NoteScreenState extends State<NoteScreen> {
     );
   }
 
-  /**
-   * Seçim modundayken gösterilecek AppBar'ı oluşturan fonksiyon
-   */
+  /// Seçim modundayken gösterilecek AppBar'ı oluşturan fonksiyon
   AppBar _buildSelectionModeAppBar() {
       return AppBar(
         backgroundColor: Colors.blue,
@@ -325,9 +298,7 @@ class NoteScreenState extends State<NoteScreen> {
       );
     }
 
-  /** 
-   * Not düzenleme modundayken gösterilecek AppBar'ı oluşturan fonksiyon
-  */
+  /// Not düzenleme modundayken gösterilecek AppBar'ı oluşturan fonksiyon
   AppBar _buildEditingModeAppBar() {
     return AppBar(
       // Düzenleme modundayken üst barı özelleştir, 
@@ -353,9 +324,7 @@ class NoteScreenState extends State<NoteScreen> {
     );
   }
 
-  /**
-   * Ana AppBar'ı duruma göre seçip döndüren fonksiyon 
-  */
+  /// Ana AppBar'ı duruma göre seçip döndüren fonksiyon 
   AppBar? _buildAppBar() {
     if (_selectionMode) {    // appBar yani en üstteki bar duruma göre değişir, eğer selection mdoe açıksa
       return _buildSelectionModeAppBar();
