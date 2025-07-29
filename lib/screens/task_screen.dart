@@ -8,11 +8,12 @@ class TasksScreen extends StatefulWidget {
 }
 
 class TasksScreenState extends State<TasksScreen> {
-  final List<Map<String, dynamic>> _tasks = []; // Artık başlangıçta boş
+  final List<Map<String, dynamic>> _tasks = []; // Görev listesi
+
 
   // HomeScreen'den çağrılacak görev ekleme metodu
   void addTask() {
-    _showAddTaskDialog(); // Diyalog açılır
+    _showAddTaskDialog();
   }
 
   void _showAddTaskDialog() {
@@ -58,6 +59,47 @@ class TasksScreenState extends State<TasksScreen> {
     });
   }
 
+  // DÜZENLEME (EDIT) ÖZELLİĞİ
+  void _editTask(int index) {
+    String updatedTask = _tasks[index]['title'];
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Görevi Düzenle'),
+          content: TextField(
+            controller: TextEditingController(text: _tasks[index]['title']),
+            onChanged: (value) {
+              updatedTask = value;
+            },
+            decoration: const InputDecoration(hintText: 'Yeni görev adı'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // İptal
+              },
+              child: const Text('İptal'),
+            ),
+            TextButton(
+              onPressed: () {
+                if (updatedTask.isNotEmpty) {
+                  setState(() {
+                    _tasks[index]['title'] =
+                        updatedTask; // Görev başlığını güncelle
+                  });
+                  Navigator.pop(context); // Diyaloğu kapat
+                }
+              },
+              child: const Text('Kaydet'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_tasks.isEmpty) {
@@ -92,13 +134,26 @@ class TasksScreenState extends State<TasksScreen> {
                     : TextDecoration.none,
               ),
             ),
-            trailing: IconButton(
-              icon: const Icon(Icons.delete, color: Colors.red),
-              onPressed: () => _deleteTask(index),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.edit, color: Colors.blue),
+                  onPressed: () => _editTask(index), // Düzenleme butonu
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.red),
+                  onPressed: () => _deleteTask(index),
+                ),
+              ],
             ),
           ),
         );
       },
     );
   }
+
+
+
+  
 }
