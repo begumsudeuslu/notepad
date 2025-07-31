@@ -154,7 +154,7 @@ class NoteScreenState extends State<NoteScreen> {
       setState(() {
         if (_editingIndex == index) {     // eğer tıkladığın index editlenmekte olan notun indexine eşitse yani aynı nota tıkladıysan
           // notu kaydet
-          _saveEditedNote();
+          //_saveEditedNote(); bu efektif değil maalesef, kaydet butonuna basmadan kaydetmesin
         } else {
           // Başka bir nota tıkladıysan önceki notu kaydet ve yeni tıkladığın notu düzenleme başla
           if (_editingIndex != null) {
@@ -216,7 +216,7 @@ class NoteScreenState extends State<NoteScreen> {
         TextField(
           controller: _editingTitleController,   // içerik kontrolü
           autofocus: true,   // düzenleme başladığında otomatik odaklanır, klavye açılır
-          maxLines: null, // Sınırsız satır   // satır sınırı yok
+          maxLines: 1, // Sınırsız satır   // satır sınırı yok
           keyboardType: TextInputType.multiline,     // enter tuşuyla yeni satır geçişi
           
           decoration: const InputDecoration(    // kullanıcıya kılvauz metin
@@ -227,7 +227,7 @@ class NoteScreenState extends State<NoteScreen> {
           ),
 
           style: const TextStyle(fontSize: 18),
-          onSubmitted: (_) => _saveEditedNote(), // enter'a basınca kaydet
+          //onSubmitted: (_) => _saveEditedNote(), // enter'a basınca kaydet
         ),
 
         const Divider(height: 10, thickness: 1, indent: 0,endIndent: 0),   // dikey boşluk, çizgi kalınlığı, soldan boşluk, sağdan boşluk
@@ -244,7 +244,7 @@ class NoteScreenState extends State<NoteScreen> {
             contentPadding: EdgeInsets.symmetric(vertical:0),
           ),
           style: const TextStyle(fontSize: 16),
-          onSubmitted: (_) =>_saveEditedNote(),     // (_): gelen parametreyi kullanmaz
+          //onSubmitted: (_) =>_saveEditedNote(),     // (_): gelen parametreyi kullanmaz
         ),
 
         Align(    //kaydet butonunu sağ alta hizalamak için kullanılıyor
@@ -303,12 +303,12 @@ class NoteScreenState extends State<NoteScreen> {
     if (_notes.isEmpty) {     // herhangi bir not yoksa
       return _buildEmptyNotesMessage();
     }
-    return GestureDetector(   // GestureDetector: kullanıcının dokunma hareketlerini algılar
+    return GestureDetector(   // GestureDetector: kullanıcının dokunma hareketlerini algılar, dıştaki
       onTap: () {     // liste dışında bir yere dokunduğunda
         if (_selectionMode) {    // selection mod açıksa
           _exitSelectionMode();   //kapat
-        } else if (_editingIndex != null) {     // notu editliyorsan
-          _saveEditedNote(); //düzenlemeyi kaydet
+        //} else if (_editingIndex != null) {     // notu editliyorsan
+         // _saveEditedNote(); //düzenlemeyi kaydet
         }
       },
       child: ListView.builder(    // listeyi oluşturu her notu sırayla aşağıdaki gibi çizmek için kullanılır
