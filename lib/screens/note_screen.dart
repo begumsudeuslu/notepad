@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:notepad/databases/database.dart';
+import '../models/note.dart';
 
 class NoteScreen extends StatefulWidget {
   final VoidCallback? onAddNote;
@@ -12,15 +14,29 @@ class NoteScreenState extends State<NoteScreen> {
   bool _selectionMode = false;
 
   // final List<String> _notes = [];  bu satırı, title ve content yapısı oluşturmak için aşağıdaki gibi güncelledik
-  final List <Map<String, String>> _notes=[];
+  //final List <Map<String, String>> _notes=[];
+  
+  List<Note> _notes=[];
 
-  final Set<int> _selectedNotes = {};
+  final Set<int> _selectedNoteIds={};
 
-  int? _editingIndex; // Hangi notun düzenlendiğini tutar, int olabailir ama null da olabilir
+  // veri yüklenirken bir gösterge göstermek için
+  bool _isLoading= false;
+
+
+  int? _editingNoteId;   // düzenlenen not id'si
+
+  //int? _editingIndex; // Hangi notun düzenlendiğini tutar, int olabailir ama null da olabilir
   
   // final TextEditingController _editingController = TextEditingController();   bu satırı title ve contentin textEdittingControllerlarını ayırmak için aşağıdaki igbi güncelledik
   final TextEditingController _editingTitleController = TextEditingController();
   final TextEditingController _editingContentController=TextEditingController();
+
+  @override
+  void initState()   {
+    super.initState();
+    _refreshNotes();    // uygulama başladığında database'i geri yükle
+  }
 
   /// Sayfayı çöpe atıyorsun ama içindeki bazı dosyalar hâlâ açık — dispose() onları kapatır.
   /// dispose() bir temizlik zamanıdır.
@@ -41,45 +57,67 @@ class NoteScreenState extends State<NoteScreen> {
     super.dispose();
   }
 
+  /// database işlemleri için methods
+  
+  /// database'i geri yükleyen method, UI'ı günceller
+  Future<void> _refreshNotes() async   {
+    setState(() {
+      _isLoading=true;    // loading durumuna geç
+    });
+
+    /// tüm notları asenkron (asyc) olarak oku: readAllNotes method
+    final notes=await NotePadDatabase.instance.readAllNotes();
+
+    setState(() {
+      _notes=notes;
+      _isLoading=false;
+    });
+  }
 
   //
   // setState(): ekranda bir şey değişti yeniden çiz
   // notes: notların içeriğini tutar
   //
-  void addNoteFromExternal() {
-    setState(() {
-      _notes.add({'title': 'Yeni not #${_notes.length + 1}', 'content': 'Bu notun içeriği.', 
-      });
-    });
+  void addNoteFromExternal() async {
+    final newNote=Note(         // yeni bir not listesi oluştur
+      title: 'Yeni Not ${_notes.length + 1}', 
+      content: 'Bu notun içeriği..', 
+      createdAt: DateTime.now(),
+    );
+
+    await NotePadDatabase.instance.create(newNote);  // database'e kaydet
+    _refreshNotes();   // notları database'den tekrar yükle UI'ı güncelle
   }
 
 
   /// _editingIndex!: bull-safety işareti, _editingIndex'in null olmadığına eminim (yukarıdaki if ile)
-  void _saveEditedNote() {
-    if (_editingIndex != null) {   //şu an düzenlenen not olup olmadığına bakar
+  void _saveEditedNote() async {
+    if (_editingNoteId != null) {   //şu an düzenlenen not olup olmadığına bakar
+      final noteToUpdate = _notes.firstWhere((note) => note.id == _editingNoteId);  // düzenlenmekte olanı bul
+      final updatedNote=noteToUpdate.copy(title: _editingTitleController.text, content: _editingContentController.text,);  // güncelle
+      
+      await NotePadDatabase.instance.update(updatedNote);   // databse'de de güncelle
+      
       setState(() {
-        _notes[_editingIndex!] = {
-          'title': _editingTitleController.text,
-          'content': _editingContentController.text,
-        };
-        _editingIndex = null; // Düzenleme modundan çık
+        _editingNoteId=null;
         _editingContentController.clear();
         _editingTitleController.clear();     //her yzdığımız değişiklik ilk _editingControllerda olur aslında textEditingController sayesinde, bunu temizle ki yeni düzenleme eskiyi eklemesin
       });
+      _refreshNotes();   // database' geri yükleyip UI'ı güncelle
     }
   }
 
 
   /// seçilen note eğer zaten selectedNotestaysa yani önceden seçilmişse kaldır, değilse ekle
   /// eğer selectedNotes boşsa ve selection_mode ona rağmen açıksa kapat(selection_mode is false) 
-  void _onSelectToggle(int index) {
+  void _onSelectToggle(int noteId) {
     setState(() {
-      if (_selectedNotes.contains(index)) {
-        _selectedNotes.remove(index);
+      if (_selectedNoteIds.contains(noteId)) {
+        _selectedNoteIds.remove(noteId);
       } else {
-        _selectedNotes.add(index);
+        _selectedNoteIds.add(noteId);
       }
-      if (_selectedNotes.isEmpty && _selectionMode) {
+      if (_selectedNoteIds.isEmpty && _selectionMode) {
         _selectionMode = false;
       }
     });
@@ -87,15 +125,15 @@ class NoteScreenState extends State<NoteScreen> {
 
 
   /// uzun süre basıldığında selection modu açar ama avrsayalım ki bir notu düzenlerken başka bir nota uzun süre bastım, düzenlediğim notu kaydeder
-  void _onLongPress(int index) {
-    if (_editingIndex != null) {
+  void _onLongPress(int noteId) {
+    if (_editingNoteId != null) {
       _saveEditedNote(); // Düzenleme modundaysa kaydet
     }
     setState(() {   // güncelle
       if (!_selectionMode) {
         _selectionMode = true;
       }
-      _onSelectToggle(index);
+      _onSelectToggle(noteId);
     });
   }
 
@@ -103,8 +141,8 @@ class NoteScreenState extends State<NoteScreen> {
   void _exitSelectionMode() {
     setState(() {
       _selectionMode = false;
-      _selectedNotes.clear();
-      _editingIndex = null; // Seçim modundan çıkınca düzenlemeyi de bitir
+      _selectedNoteIds.clear();
+      _editingNoteId= null; // Seçim modundan çıkınca düzenlemeyi de bitir
       _editingTitleController.clear();
       _editingContentController.clear();
     });
@@ -124,19 +162,13 @@ class NoteScreenState extends State<NoteScreen> {
             child: const Text("Hayır"),
           ),
           TextButton(
-            onPressed: () {
-              setState(() {
-                final sortedIndexes = _selectedNotes.toList()..sort((a, b) => b.compareTo(a));   // seçilen indexleri büyükten küçüğe sırala ki silerken de sondan başa sil yoksa kayar
-                for (var index in sortedIndexes) {    // seçilen her notu siler 
-                  _notes.removeAt(index);
-                }
-                _selectedNotes.clear();
-                _selectionMode = false;
-                _editingIndex = null; // Silme işleminden sonra düzenlemeyi de bitir
-                _editingTitleController.clear();
-                _editingContentController.clear();
-              });
+            onPressed: ()  async {
+              for (var id in _selectedNoteIds)   {
+                await NotePadDatabase.instance.delete(id);
+              }
               Navigator.of(context).pop();
+              _refreshNotes();
+              _exitSelectionMode();
             },
             child: const Text("Evet", style: TextStyle(color: Colors.red)),
           ),
@@ -147,23 +179,25 @@ class NoteScreenState extends State<NoteScreen> {
 
 
   /// notları düzenleme aşamasındaki yönlendirme
-  void _onNoteTap(int index) {
+  void _onNoteTap(int noteId) {
     if (_selectionMode) {   // eğer seçim modundaysa
-      _onSelectToggle(index);   // ekle/kaldır
+      _onSelectToggle(noteId);   // ekle/kaldır
     } else {    //seçim modunda değilse
       setState(() {
-        if (_editingIndex == index) {     // eğer tıkladığın index editlenmekte olan notun indexine eşitse yani aynı nota tıkladıysan
+        if (_editingNoteId == noteId) {     // eğer tıkladığın index editlenmekte olan notun indexine eşitse yani aynı nota tıkladıysan
           // notu kaydet
           //_saveEditedNote(); bu efektif değil maalesef, kaydet butonuna basmadan kaydetmesin
+          FocusScope.of(context).unfocus();
         } else {
           // Başka bir nota tıkladıysan önceki notu kaydet ve yeni tıkladığın notu düzenleme başla
-          if (_editingIndex != null) {
+          if (_editingNoteId != null) {
             _saveEditedNote();
           }
           // Yeni notu düzenleme moduna al, artık editinIndex yeni index, en son onu düzenledik
-          _editingIndex = index;
-          _editingTitleController.text = _notes[index]['title']!;
-          _editingContentController.text = _notes[index]['content']!;
+          _editingNoteId = noteId;
+          final note=_notes.firstWhere((n)=>n.id==noteId);
+          _editingTitleController.text = note.title;
+          _editingContentController.text = note.content;
         }
       });
     }
@@ -181,10 +215,10 @@ class NoteScreenState extends State<NoteScreen> {
   }
 
   /// Her bir not kartını oluşturan fonksiyon
-  Widget _buildNoteCard(BuildContext context, int index, bool selected, bool isEditing) {
+  Widget _buildNoteCard(BuildContext context, Note note, bool selected, bool isEditing) {
     return GestureDetector(
-      onLongPress: () => _onLongPress(index),  // uzun basıllınca çoklu seçim moduna geçmek 
-      onTap: () => _onNoteTap(index),    // tıklanırsa _oneNoteTap fonksyionu çağırılır, düzenleyebilirsin veya seçim modunda seçim yaparsın
+      onLongPress: () => _onLongPress(note.id!),  // uzun basıllınca çoklu seçim moduna geçmek 
+      onTap: () => _onNoteTap(note.id!),    // tıklanırsa _oneNoteTap fonksyionu çağırılır, düzenleyebilirsin veya seçim modunda seçim yaparsın
       child: Card(     //notu gösteren kart
         elevation: isEditing ? 8 : 3, // Düzenlenirken daha belirgin olsun, gölgelendirme
         margin: const EdgeInsets.symmetric(vertical: 8),      // her not kartının arasına dikey olarak (üst ve alt) 8 piksel boşluk bırakır
@@ -201,7 +235,7 @@ class NoteScreenState extends State<NoteScreen> {
             padding: const EdgeInsets.all(8.0), // Not içeriğine ek boşluk
             child: isEditing
               ? _buildEditingNoteView() // Not düzenleme görünümü
-              : _buildDisplayNoteView(index, selected), // Not görüntüleme görünümü
+              : _buildDisplayNoteView(note, selected), // Not görüntüleme görünümü
           ),
       ),
     );
@@ -217,7 +251,7 @@ class NoteScreenState extends State<NoteScreen> {
           controller: _editingTitleController,   // içerik kontrolü
           autofocus: true,   // düzenleme başladığında otomatik odaklanır, klavye açılır
           maxLines: 1, // Sınırsız satır   // satır sınırı yok
-          keyboardType: TextInputType.multiline,     // enter tuşuyla yeni satır geçişi
+          keyboardType: TextInputType.text,     // enter tuşuyla yeni satır geçişi olmasın dolayısıyla tek birini görür
           
           decoration: const InputDecoration(    // kullanıcıya kılvauz metin
             hintText: 'Başlık',
@@ -266,29 +300,29 @@ class NoteScreenState extends State<NoteScreen> {
   }
 
   /// Not görüntüleme modundayken gösterilecek görünümü oluşturan fonksiyon 
-  Widget _buildDisplayNoteView(int index, bool selected) {
+  Widget _buildDisplayNoteView(Note note, bool selected) {
     return ListTile(          // when isEditing is false, sadece görüntüle
       // leaading, title, trailing
       // leading: icon, avatar (en sağda)
       // title: ortadaki metin
       // trailing: en sağda gösterilen şey (genelde buton, icon, checkbox)
       title: Text(      // note metni ekrana yazılır
-        _notes[index]['title']!,    // başlığı göster
+        note.title,    // başlığı göster
         style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         maxLines:1,    // tek satırda göster
         overflow: TextOverflow.ellipsis,    // taşarsa göstermesi için
       ),
       subtitle: Text(      // note metni ekrana yazılır
-        _notes[index]['content']!,    // başlığı göster
+        note.content,    // başlığı göster
         style: const TextStyle(fontSize: 14, color: Colors.grey),
-        maxLines:1,    // tek satırda göster
+        maxLines:2,    // tek satırda göster
         overflow: TextOverflow.ellipsis,    // taşarsa göstermesi için
       ),
 
       trailing: _selectionMode      // selection mode açık mı?
         ? Checkbox(       // açıksa checkboxu göster
           value: selected,
-          onChanged: (_) => _onSelectToggle(index),
+          onChanged: (_) => _onSelectToggle(note.id!),
           shape: const CircleBorder(),
           activeColor: Colors.blue,
         )
@@ -300,6 +334,9 @@ class NoteScreenState extends State<NoteScreen> {
 
   /// Ana Not Listesi Oluşturucu
   Widget _buildNotesList() {
+    if(_isLoading)  {
+      return const Center(child: CircularProgressIndicator());  // görsel gerş bildirim
+    }
     if (_notes.isEmpty) {     // herhangi bir not yoksa
       return _buildEmptyNotesMessage();
     }
@@ -315,10 +352,11 @@ class NoteScreenState extends State<NoteScreen> {
         padding: const EdgeInsets.all(12),   // alt, üst, sağ, sol 12 boşluk
         itemCount: _notes.length,    // kaç tane not varsa o kadar item çiz
         itemBuilder: (context, index) {   // her bir notun nasıl görüneceğini tanımlar
-          final selected = _selectedNotes.contains(index);      // şu anki index seçim modunda seçili mi
-          final isEditing = _editingIndex == index;          // şu anli index düzenleniyor mu
+          final note=_notes[index];
+          final selected = _selectedNoteIds.contains(note.id);      // şu anki index seçim modunda seçili mi
+          final isEditing = _editingNoteId == note.id;          // şu anli index düzenleniyor mu
 
-          return _buildNoteCard(context, index, selected, isEditing);
+          return _buildNoteCard(context, note, selected, isEditing);
         },
       ),
     );
@@ -332,7 +370,7 @@ class NoteScreenState extends State<NoteScreen> {
           icon: const Icon(Icons.close),      // çık butonu
           onPressed: _exitSelectionMode,     // çık
         ),
-        title: Text('${_selectedNotes.length} Seçildi'),
+        title: Text('${_selectedNoteIds.length} Seçildi'),
         actions: [      // butonlar
           IconButton(
             icon: const Icon(Icons.delete),    // delete iconu
@@ -360,7 +398,7 @@ class NoteScreenState extends State<NoteScreen> {
           icon: const Icon(Icons.cancel), // sağa iptal ikonu ekle 
           onPressed: () {   // bastığında
           setState(() {   // güncelle
-            _editingIndex = null; // Düzenlemeyi iptal et
+            _editingNoteId = null; // Düzenlemeyi iptal et
             _editingTitleController.clear();    // controllerı temizle
             _editingContentController.clear();
           });
@@ -375,7 +413,7 @@ class NoteScreenState extends State<NoteScreen> {
   AppBar? _buildAppBar() {
     if (_selectionMode) {    // appBar yani en üstteki bar duruma göre değişir, eğer selection mdoe açıksa
       return _buildSelectionModeAppBar();
-    } else if (_editingIndex != null) {      // select mode açıksa ve index null değilse yani bir şeyler düzenleniyorsa
+    } else if (_editingNoteId != null) {      // select mode açıksa ve index null değilse yani bir şeyler düzenleniyorsa
       return _buildEditingModeAppBar();
     }
     return null; // Ne seçim modu ne de düzenleme modu aktifse, varsayılan AppBar (boş)
