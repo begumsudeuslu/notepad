@@ -81,7 +81,7 @@ class NotePadDatabase {
   Future<List<Note>> readAllNotes() async   {
     final db = await instance.database;    // database bağlantısı
 
-    final orderBy = 'createdAt DESC';    // en yeni en üste gelecek şekilde azalan sırada sırala
+    final orderBy = 'createdAt ASC';    // en yeni en üste gelecek şekilde azalan sırada sırala
 
     final result = await db.query('notes', orderBy: orderBy);    // notes tablosundan tüm verileri srogulayıp sırala
 
