@@ -10,11 +10,17 @@ class NoteScreen extends StatefulWidget {
 
 class NoteScreenState extends State<NoteScreen> {
   bool _selectionMode = false;
-  final List<String> _notes = [];
-  final Set<int> _selectedNotes = {};
-  int? _editingIndex; // Hangi notun düzenlendiğini tutar, int olabailir ama null da olabilir
-  final TextEditingController _editingController = TextEditingController();
 
+  // final List<String> _notes = [];  bu satırı, title ve content yapısı oluşturmak için aşağıdaki gibi güncelledik
+  final List <Map<String, String>> _notes=[];
+
+  final Set<int> _selectedNotes = {};
+
+  int? _editingIndex; // Hangi notun düzenlendiğini tutar, int olabailir ama null da olabilir
+  
+  // final TextEditingController _editingController = TextEditingController();   bu satırı title ve contentin textEdittingControllerlarını ayırmak için aşağıdaki igbi güncelledik
+  final TextEditingController _editingTitleController = TextEditingController();
+  final TextEditingController _editingContentController=TextEditingController();
 
   /// Sayfayı çöpe atıyorsun ama içindeki bazı dosyalar hâlâ açık — dispose() onları kapatır.
   /// dispose() bir temizlik zamanıdır.
@@ -30,7 +36,8 @@ class NoteScreenState extends State<NoteScreen> {
   /// Kendi temizliğini yaptıktan sonra, Flutter'ın da gerekli temizlikleri yapmasını sağlar.
   @override
   void dispose() {
-    _editingController.dispose();
+    _editingTitleController.dispose();
+    _editingContentController.dispose();
     super.dispose();
   }
 
@@ -41,7 +48,8 @@ class NoteScreenState extends State<NoteScreen> {
   //
   void addNoteFromExternal() {
     setState(() {
-      _notes.add("Yeni not #${_notes.length + 1}");
+      _notes.add({'title': 'Yeni not #${_notes.length + 1}', 'content': 'Bu notun içeriği.', 
+      });
     });
   }
 
@@ -50,9 +58,13 @@ class NoteScreenState extends State<NoteScreen> {
   void _saveEditedNote() {
     if (_editingIndex != null) {   //şu an düzenlenen not olup olmadığına bakar
       setState(() {
-        _notes[_editingIndex!] = _editingController.text;
+        _notes[_editingIndex!] = {
+          'title': _editingTitleController.text,
+          'content': _editingContentController.text,
+        };
         _editingIndex = null; // Düzenleme modundan çık
-        _editingController.clear();     //her yzdığımız değişiklik ilk _editingControllerda olur aslında textEditingController sayesinde, bunu temizle ki yeni düzenleme eskiyi eklemesin
+        _editingContentController.clear();
+        _editingTitleController.clear();     //her yzdığımız değişiklik ilk _editingControllerda olur aslında textEditingController sayesinde, bunu temizle ki yeni düzenleme eskiyi eklemesin
       });
     }
   }
@@ -93,7 +105,8 @@ class NoteScreenState extends State<NoteScreen> {
       _selectionMode = false;
       _selectedNotes.clear();
       _editingIndex = null; // Seçim modundan çıkınca düzenlemeyi de bitir
-      _editingController.clear();
+      _editingTitleController.clear();
+      _editingContentController.clear();
     });
   }
 
@@ -120,7 +133,8 @@ class NoteScreenState extends State<NoteScreen> {
                 _selectedNotes.clear();
                 _selectionMode = false;
                 _editingIndex = null; // Silme işleminden sonra düzenlemeyi de bitir
-                _editingController.clear();
+                _editingTitleController.clear();
+                _editingContentController.clear();
               });
               Navigator.of(context).pop();
             },
@@ -148,7 +162,8 @@ class NoteScreenState extends State<NoteScreen> {
           }
           // Yeni notu düzenleme moduna al, artık editinIndex yeni index, en son onu düzenledik
           _editingIndex = index;
-          _editingController.text = _notes[index];
+          _editingTitleController.text = _notes[index]['title']!;
+          _editingContentController.text = _notes[index]['content']!;
         }
       });
     }
@@ -199,17 +214,39 @@ class NoteScreenState extends State<NoteScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,   /// alt elemanları yatayda tam genişliğe uzatır (özellikle buton için)
       children: [
         TextField(
-          controller: _editingController,   // içerik kontrolü
+          controller: _editingTitleController,   // içerik kontrolü
           autofocus: true,   // düzenleme başladığında otomatik odaklanır, klavye açılır
           maxLines: null, // Sınırsız satır   // satır sınırı yok
           keyboardType: TextInputType.multiline,     // enter tuşuyla yeni satır geçişi
+          
           decoration: const InputDecoration(    // kullanıcıya kılvauz metin
-            hintText: 'Notunuzu buraya yazın...',
+            hintText: 'Başlık',
             border: InputBorder.none, // Sınırları kaldır, kenar çizgilerini gösterme
+            isDense: true,    // daha az boşluk
+            contentPadding: EdgeInsets.symmetric(vertical:0),  // dikey paddingi kaldırır
           ),
+
           style: const TextStyle(fontSize: 18),
-          onSubmitted: (_) => _saveEditedNote(), // Enter'a basınca kaydet
+          onSubmitted: (_) => _saveEditedNote(), // enter'a basınca kaydet
         ),
+
+        const Divider(height: 10, thickness: 1, indent: 0,endIndent: 0),   // dikey boşluk, çizgi kalınlığı, soldan boşluk, sağdan boşluk
+
+        TextField(
+          controller: _editingContentController,
+          maxLines: null,
+          keyboardType: TextInputType.multiline,
+          
+          decoration: const InputDecoration(
+            hintText: 'Notunuzu buraya yazın..',
+            border: InputBorder.none,   // sınırları kaldır kenar çizgilerini gösterme
+            isDense: true,
+            contentPadding: EdgeInsets.symmetric(vertical:0),
+          ),
+          style: const TextStyle(fontSize: 16),
+          onSubmitted: (_) =>_saveEditedNote(),     // (_): gelen parametreyi kullanmaz
+        ),
+
         Align(    //kaydet butonunu sağ alta hizalamak için kullanılıyor
           alignment: Alignment.bottomRight,    // sağ alt
           child: ElevatedButton(    // amvi kaydet butonu
@@ -235,10 +272,19 @@ class NoteScreenState extends State<NoteScreen> {
       // leading: icon, avatar (en sağda)
       // title: ortadaki metin
       // trailing: en sağda gösterilen şey (genelde buton, icon, checkbox)
-      title: Text(
-        _notes[index],    // note metni ekrana yazılır
-        style: const TextStyle(fontSize: 18),
+      title: Text(      // note metni ekrana yazılır
+        _notes[index]['title']!,    // başlığı göster
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        maxLines:1,    // tek satırda göster
+        overflow: TextOverflow.ellipsis,    // taşarsa göstermesi için
       ),
+      subtitle: Text(      // note metni ekrana yazılır
+        _notes[index]['content']!,    // başlığı göster
+        style: const TextStyle(fontSize: 14, color: Colors.grey),
+        maxLines:1,    // tek satırda göster
+        overflow: TextOverflow.ellipsis,    // taşarsa göstermesi için
+      ),
+
       trailing: _selectionMode      // selection mode açık mı?
         ? Checkbox(       // açıksa checkboxu göster
           value: selected,
@@ -315,7 +361,8 @@ class NoteScreenState extends State<NoteScreen> {
           onPressed: () {   // bastığında
           setState(() {   // güncelle
             _editingIndex = null; // Düzenlemeyi iptal et
-            _editingController.clear();    // controllero temizle
+            _editingTitleController.clear();    // controllerı temizle
+            _editingContentController.clear();
           });
         },
         tooltip: 'İptal Et',
