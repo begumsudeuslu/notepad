@@ -20,14 +20,14 @@ class _AccountScreenState extends State<AccountScreen>   {
   @override
   void initState()    {
     super.initState();
-    //_checkLoginStatus();    // database ihtiyacı
+    _checkLoginStatus();    // database ihtiyacı, eğer login yapılmadığı durumu test etmek isteniliyorsa yorum satırına alınacak
   }
 
 
   // kimlik kontrolü burada yapılacak, kullanıcı giriş kontrolü database'den alınan verilerle olacak
   void _checkLoginStatus()   {
     setState(()  {          // setState ile değiştir
-      _isLoggedIn=true; 
+      _isLoggedIn=true;    // giriş yapıldığını varsayalım
       _username="Flutter Server"; 
       _email="flutter.server@example.com";
     });
