@@ -18,7 +18,7 @@ class TasksScreenState extends State<TasksScreen> {
   // Yeni görev ekleme diyalogu
   void _showAddTaskDialog() {
     String newTask = '';
-    String selectedColor = 'green'; // Varsayılan renk (yeşil)
+    String selectedColor = 'white'; // Varsayılan renk
 
     showDialog(
       context: context,
@@ -120,7 +120,7 @@ class TasksScreenState extends State<TasksScreen> {
         return Colors.yellow.shade100;
       case 'green':
       default:
-        return Colors.green.shade100;
+        return Colors.white;
     }
   }
 
