@@ -275,14 +275,16 @@ class NoteScreenState extends State<NoteScreen> {
     if (_notes.isEmpty) {
       return _buildEmptyNotesMessage();
     }
-    return ListView.builder(
-      padding: const EdgeInsets.all(12),
-      itemCount: _notes.length,
-      itemBuilder: (context, index) {
-        final note = _notes[index];
-        final isEditing = _editingNoteId == note.id;
-        return _buildNoteCard(context, note, isEditing);
-      },
+    return SlidableAutoCloseBehavior(
+      child: ListView.builder(
+        padding: const EdgeInsets.all(12),
+        itemCount: _notes.length,
+        itemBuilder: (context, index) {
+          final note = _notes[index];
+          final isEditing = _editingNoteId == note.id;
+          return _buildNoteCard(context, note, isEditing);
+        },
+      ),
     );
   }
 
