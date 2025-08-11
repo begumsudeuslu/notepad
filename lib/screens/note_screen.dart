@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:notepad/databases/database.dart';
 import '../models/note.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 
 class NoteScreen extends StatefulWidget {
   final VoidCallback? onAddNote;
@@ -125,66 +126,86 @@ class NoteScreenState extends State<NoteScreen> {
   }
 
   Widget _buildNoteCard(BuildContext context, Note note, bool isEditing) {
-    return Dismissible(
-      key: Key(note.id.toString()),
-      direction: DismissDirection.endToStart,
-      background: Container(
-        color: Colors.red,
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: const Icon(Icons.delete, color: Colors.white),
+  if (isEditing) {
+    return Card(
+      elevation: 8,
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: Colors.blueAccent, width: 2),
       ),
-      confirmDismiss: (direction) async {
-        return await showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text("Notu Sil"),
-              content: const Text("Bu notu silmek istediğinize emin misiniz?"),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text("Hayır"),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  child: const Text("Evet"),
-                ),
-              ],
-            );
-          },
-        );
-      },
-      onDismissed: (direction) {
-        if (direction == DismissDirection.endToStart) {
-          final index = _notes.indexOf(note);
-          if (index != -1) {
-            _deleteNote(note.id!, index);
-          }
-        }
-      },
-      child: GestureDetector(
-        onTap: () => _startEditing(note),
-        child: Card(
-          elevation: isEditing ? 8 : 3,
-          margin: const EdgeInsets.symmetric(vertical: 8),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: isEditing
-                ? const BorderSide(color: Colors.blueAccent, width: 2)
-                : BorderSide.none,
-          ),
-          color: isEditing ? Colors.blue.withOpacity(0.1) : null,
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: isEditing
-                ? _buildEditingNoteView()
-                : _buildDisplayNoteView(note),
-          ),
-        ),
+      color: Colors.blue.withOpacity(0.1),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: _buildEditingNoteView(),
       ),
     );
   }
+
+  return Slidable(
+    key: ValueKey(note.id),
+    endActionPane: ActionPane(
+      motion: const ScrollMotion(),
+      children: [
+        SlidableAction(
+          onPressed: (context) => _startEditing(note), // Düzenle butonuna basıldığında
+          backgroundColor: Colors.blue,
+          foregroundColor: Colors.white,
+          icon: Icons.edit,
+          label: 'Düzenle',
+        ),
+        SlidableAction(
+          onPressed: (context) { // Sil butonuna basıldığında
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: const Text("Notu Sil"),
+                  content: const Text("Bu notu silmek istediğinize emin misiniz?"),
+                  actions: <Widget>[
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: const Text("Hayır"),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop(true);
+                        // Silme işlemini başlat
+                        final index = _notes.indexOf(note);
+                        if (index != -1) {
+                          _deleteNote(note.id!, index);
+                        }
+                      },
+                      child: const Text("Evet"),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+          backgroundColor: Colors.red,
+          foregroundColor: Colors.white,
+          icon: Icons.delete,
+          label: 'Sil',
+        ),
+      ],
+    ),
+    child: GestureDetector(
+      onTap: () => _startEditing(note),
+      child: Card(
+        elevation: 3,
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: _buildDisplayNoteView(note),
+        ),
+      ),
+    ),
+  );
+}
 
   Widget _buildEditingNoteView() {
     return Column(
@@ -234,22 +255,22 @@ class NoteScreenState extends State<NoteScreen> {
     );
   }
 
-  Widget _buildDisplayNoteView(Note note) {
-    return ListTile(
-      title: Text(
-        note.title,
-        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-      subtitle: Text(
-        note.content,
-        style: const TextStyle(fontSize: 14, color: Colors.grey),
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-      ),
-    );
-  }
+Widget _buildDisplayNoteView(Note note) {
+  return ListTile(
+    title: Text(
+      note.title,
+      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    ),
+    subtitle: Text(
+      note.content,
+      style: const TextStyle(fontSize: 14, color: Colors.grey),
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+    ),
+  );
+}
 
   Widget _buildNotesList() {
     if (_isLoading) {
