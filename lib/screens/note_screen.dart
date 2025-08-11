@@ -142,67 +142,60 @@ class NoteScreenState extends State<NoteScreen> {
     );
   }
 
-  return Slidable(
-    key: ValueKey(note.id),
-    endActionPane: ActionPane(
-      motion: const ScrollMotion(),
-      children: [
-        SlidableAction(
-          onPressed: (context) => _startEditing(note), // Düzenle butonuna basıldığında
-          backgroundColor: Colors.blue,
-          foregroundColor: Colors.white,
-          icon: Icons.edit,
-          label: 'Düzenle',
-        ),
-        SlidableAction(
-          onPressed: (context) { // Sil butonuna basıldığında
-            showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  title: const Text("Notu Sil"),
-                  content: const Text("Bu notu silmek istediğinize emin misiniz?"),
-                  actions: <Widget>[
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(false),
-                      child: const Text("Hayır"),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop(true);
-                        // Silme işlemini başlat
-                        final index = _notes.indexOf(note);
-                        if (index != -1) {
-                          _deleteNote(note.id!, index);
-                        }
-                      },
-                      child: const Text("Evet"),
-                    ),
-                  ],
-                );
-              },
-            );
-          },
-          backgroundColor: Colors.red,
-          foregroundColor: Colors.white,
-          icon: Icons.delete,
-          label: 'Sil',
-        ),
-      ],
+  return Card(
+    elevation: 3,
+    margin: const EdgeInsets.symmetric(vertical: 8),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(12),
     ),
-    child: GestureDetector(
-      onTap: () => _startEditing(note),
-      child: Card(
-        elevation: 3,
-        margin: const EdgeInsets.symmetric(vertical: 8),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: _buildDisplayNoteView(note),
-        ),
+    child: Slidable(
+      key: ValueKey(note.id),
+      endActionPane: ActionPane(
+        motion: const ScrollMotion(),
+        children: [
+          SlidableAction(
+            onPressed: (context) => _startEditing(note),
+            backgroundColor: Colors.blue,
+            foregroundColor: Colors.white,
+            icon: Icons.edit,
+            label: 'Düzenle',
+          ),
+          SlidableAction(
+            onPressed: (context) {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text("Notu Sil"),
+                    content: const Text("Bu notu silmek istediğinize emin misiniz?"),
+                    actions: <Widget>[
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: const Text("Hayır"),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop(true);
+                          final index = _notes.indexOf(note);
+                          if (index != -1) {
+                            _deleteNote(note.id!, index);
+                          }
+                        },
+                        child: const Text("Evet"),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+            backgroundColor: Colors.red,
+            foregroundColor: Colors.white,
+            icon: Icons.delete,
+            label: 'Sil',
+          ),
+        ],
       ),
+      child: _buildDisplayNoteView(note), // Balonun içeriği
     ),
   );
 }
@@ -255,22 +248,25 @@ class NoteScreenState extends State<NoteScreen> {
     );
   }
 
-Widget _buildDisplayNoteView(Note note) {
-  return ListTile(
-    title: Text(
-      note.title,
-      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-    ),
-    subtitle: Text(
-      note.content,
-      style: const TextStyle(fontSize: 14, color: Colors.grey),
-      maxLines: 2,
-      overflow: TextOverflow.ellipsis,
-    ),
-  );
-}
+  Widget _buildDisplayNoteView(Note note) {
+    return ListTile(
+      title: Text(
+        note.title,
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      subtitle: Text(
+        note.content,
+        style: const TextStyle(fontSize: 14, color: Colors.grey),
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+      ),
+      // Yüksekliği daha tutarlı hale getirmek için bu parametreleri ayarlayın
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      isThreeLine: false, // subtitle 2 satır olduğu için bunu false yapın
+    );
+  }
 
   Widget _buildNotesList() {
     if (_isLoading) {
