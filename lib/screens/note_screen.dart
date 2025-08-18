@@ -115,6 +115,26 @@ class NoteScreenState extends State<NoteScreen> {
     });
   }
 
+  void _showNoteDetail(BuildContext context, Note note)   {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(note.title),
+          content: SingleChildScrollView(
+            child: Text(note.content),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text("Kapat"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Widget _buildEmptyNotesMessage() {
     return const Center(
       child: Text(
@@ -265,6 +285,7 @@ class NoteScreenState extends State<NoteScreen> {
       // Yüksekliği daha tutarlı hale getirmek için bu parametreleri ayarlayın
       contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       isThreeLine: false, // subtitle 2 satır olduğu için bunu false yapın
+      onTap:() => _showNoteDetail(context, note),
     );
   }
 
