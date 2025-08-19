@@ -1,47 +1,53 @@
-// forgot_password.dart
 import 'package:flutter/material.dart';
 
-class ForgotPasswordScreen extends StatefulWidget {
-  const ForgotPasswordScreen({super.key});
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
-  // E-posta giriş alanının kontrolcüsü
+class _RegisterScreenState extends State<RegisterScreen> {
+  // kontrolcüler
+  final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
 
-  // Şifre sıfırlama işlemini simüle eden fonksiyon
-  void _handlePasswordReset() {
+  // simüle eden function
+  void _handleRegister() {
+    final String username = _usernameController.text;
     final String email = _emailController.text;
+    final String password = _passwordController.text;
 
-    // Basit bir boş alan kontrolü
-    if (email.isEmpty) {
+    // boşsa olmaz, basit kontrol
+    if (username.isEmpty || email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Lütfen e-posta adresinizi girin."),
+          content: Text("Lütfen tüm alanları doldurun."),
           backgroundColor: Colors.redAccent,
         ),
       );
       return;
     }
 
-    // Şimdilik başarılı bir simülasyon mesajı gösterildi ve ekran kapatıldı
+    // Şimdilik başarılı bir kayıt mesajı gösterildi
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text("Şifre sıfırlama linki e-posta adresinize gönderildi!"),
+        content: Text("Kayıt işlemi başarılı (simülasyon)"),
         backgroundColor: Colors.green,
       ),
     );
 
-    // İşlem tamamlandıktan sonra bir önceki ekrana geri dönüyoruz.
+    // Kayıt başarılı olduktan sonra LoginScreen'e geri dönelim.
+    // Kullanıcı artık giriş yapabilir.
     Navigator.pop(context);
   }
 
   @override
   void dispose() {
+    _usernameController.dispose();
     _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
@@ -49,7 +55,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Şifremi Unuttum'),
+        title: const Text('Kayıt Ol'),
         centerTitle: false,
         backgroundColor: Colors.blue,
       ),
@@ -59,14 +65,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Icon(
-              Icons.lock_reset_outlined,
+              Icons.person_add_alt_1_outlined,
               size: 100,
               color: Colors.blue,
             ),
             const SizedBox(height: 10),
 
             const Text(
-              'Şifrenizi Sıfırlayın',
+              'Yeni Hesap Oluştur',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 24,
@@ -74,14 +80,21 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 color: Colors.blue,
               ),
             ),
-            const SizedBox(height: 10),
-
-            const Text(
-              "Şifrenizi sıfırlamak için hesabınıza bağlı e-posta adresini girin.",
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16, color: Colors.grey),
-            ),
             const SizedBox(height: 20),
+
+            // Kullanıcı Adı Girişi
+            TextField(
+              controller: _usernameController,
+              decoration: const InputDecoration(
+                labelText: 'Kullanıcı Adı',
+                hintText: 'örn: mustafa_2024',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                ),
+                prefixIcon: Icon(Icons.person),
+              ),
+            ),
+            const SizedBox(height: 15),
 
             // E-posta Girişi
             TextField(
@@ -96,11 +109,25 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               ),
               keyboardType: TextInputType.emailAddress,
             ),
+            const SizedBox(height: 15),
+
+            // Şifre Girişi
+            TextField(
+              controller: _passwordController,
+              decoration: const InputDecoration(
+                labelText: 'Şifre',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                ),
+                prefixIcon: Icon(Icons.lock),
+              ),
+              obscureText: true,
+            ),
             const SizedBox(height: 20),
 
-            // Şifremi Sıfırla Butonu
+            // Kayıt Ol Butonu
             ElevatedButton(
-              onPressed: _handlePasswordReset,
+              onPressed: _handleRegister,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,
                 foregroundColor: Colors.white,
@@ -110,7 +137,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 ),
                 textStyle: const TextStyle(fontSize: 18),
               ),
-              child: const Text('Şifremi Sıfırla'),
+              child: const Text('Kayıt Ol'),
             ),
           ],
         ),
