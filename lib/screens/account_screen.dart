@@ -14,11 +14,18 @@ class _AccountScreenState extends State<AccountScreen> {
   String _username = "Misafir Kullanıcı";
   String _email = "misafir@example.com";
 
+  int _notesCount = 0;
+  int _tasksCount = 0;
+  int _completedTasksCount = 0;
+
   ///ileriki adımlarda kullanıcının giriş durumunu kontrol edebilirsiniz
   @override
   void initState() {
     super.initState();
     _checkLoginStatus(); // database ihtiyacı, eğer login yapılmadığı durumu test etmek isteniliyorsa yorum satırına alınacak
+    if (_isLoggedIn) {
+      _loadProductivityStats();
+    }
   }
 
   // kimlik kontrolü burada yapılacak, kullanıcı giriş kontrolü database'den alınan verilerle olacak
@@ -28,6 +35,16 @@ class _AccountScreenState extends State<AccountScreen> {
       _isLoggedIn = true; // giriş yapıldığını varsayalım
       _username = "Flutter Server";
       _email = "flutter.server@example.com";
+    });
+  }
+
+  void _loadProductivityStats() {
+    // Gerçek bir uygulamada burada veritabanından veya bir API'den veriler çekilir.
+    // Şimdilik sabit değerler atayalım.
+    setState(() {
+      _notesCount = 12;
+      _tasksCount = 5;
+      _completedTasksCount = 3;
     });
   }
 
@@ -67,6 +84,10 @@ class _AccountScreenState extends State<AccountScreen> {
       _isLoggedIn = false;
       _username = "Misafir Kullanıcı";
       _email = "misafir@example.com";
+      // 👇 YENİ: Çıkış yapıldığında istatistikleri sıfırla.
+      _notesCount = 0;
+      _tasksCount = 0;
+      _completedTasksCount = 0;
     });
     ScaffoldMessenger.of(
       context,
@@ -315,6 +336,82 @@ class _AccountScreenState extends State<AccountScreen> {
     );
   }
 
+  Widget _buildStatsSection() {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Hesap İstatistikleri",
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+            const Divider(height: 20, thickness: 1, color: Colors.white),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildStatItem(
+                  icon: Icons.notes,
+                  label: "Notlar",
+                  count: _notesCount,
+                  color: Colors.blue,
+                ),
+                _buildStatItem(
+                  icon: Icons.assignment_outlined,
+                  label: "Görevler",
+                  count: _tasksCount,
+                  color: Colors.blue,
+                ),
+                _buildStatItem(
+                  icon: Icons.check_circle_outline,
+                  label: "Tamamlanan",
+                  count: _completedTasksCount,
+                  color: Colors.blue,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatItem({
+    required IconData icon,
+    required String label,
+    required int count,
+    required Color color,
+  }) {
+    return Column(
+      children: [
+        CircleAvatar(
+          backgroundColor: const Color.fromARGB(255, 230, 240, 255),
+          radius: 30,
+          child: Icon(icon, size: 30, color: color),
+        ),
+        const SizedBox(height: 8),
+        Text(label, style: const TextStyle(fontSize: 16, color: Colors.black)),
+        const SizedBox(height: 4),
+        Text(
+          count.toString(),
+          style: const TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -339,6 +436,9 @@ class _AccountScreenState extends State<AccountScreen> {
               _buildAccountInfoSection()
             else
               _buildLoginRegistrationSection(),
+            const SizedBox(height: 10),
+
+            if (_isLoggedIn) _buildStatsSection() else const SizedBox.shrink(),
             const SizedBox(height: 10),
 
             // open the account setting section, if user is logged in
