@@ -1,6 +1,5 @@
 //lib/databases/database.dart
 
-import 'dart:async';
 import 'dart:core';
 
 //sqlite kütüphanesi
