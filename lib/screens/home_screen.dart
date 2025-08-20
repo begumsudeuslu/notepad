@@ -15,7 +15,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
-  // Sayfaları GlobalKey ile kontrol edeceğiz
+  // Sayfaları GlobalKey ile kontrol ederiz
   final GlobalKey<NoteScreenState> _noteKey = GlobalKey();
   final GlobalKey<TasksScreenState> _taskKey = GlobalKey();
 

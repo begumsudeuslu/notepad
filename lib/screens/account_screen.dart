@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'manage_account_screens/login_screen.dart';
+import 'manage_signin_signup/login_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -11,14 +12,24 @@ class AccountScreen extends StatefulWidget {
 class _AccountScreenState extends State<AccountScreen> {
   // ilk olarak giriş yapılmadığını varsayalım
   bool _isLoggedIn = false;
+  bool _enableNotifications = true;
+
   String _username = "Misafir Kullanıcı";
   String _email = "misafir@example.com";
+
+  int _notesCount = 0;
+  int _tasksCount = 0;
+  int _completedTasksCount = 0;
 
   ///ileriki adımlarda kullanıcının giriş durumunu kontrol edebilirsiniz
   @override
   void initState() {
     super.initState();
     _checkLoginStatus(); // database ihtiyacı, eğer login yapılmadığı durumu test etmek isteniliyorsa yorum satırına alınacak
+    if (_isLoggedIn) {
+      _loadProductivityStats();
+    }
+    _loadNotificationSetting();
   }
 
   // kimlik kontrolü burada yapılacak, kullanıcı giriş kontrolü database'den alınan verilerle olacak
@@ -31,19 +42,271 @@ class _AccountScreenState extends State<AccountScreen> {
     });
   }
 
+  void _loadProductivityStats() {
+    // Gerçek bir uygulamada burada veritabanından veya bir API'den veriler çekilir.
+    // Şimdilik sabit değerler atayalım.
+    setState(() {
+      _notesCount = 12;
+      _tasksCount = 5;
+      _completedTasksCount = 3;
+    });
+  }
+
+  void _loadNotificationSetting() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      // Eğer daha önce kaydedilmiş bir değer varsa onu yükle, yoksa true olarak başlat.
+      _enableNotifications = prefs.getBool('notifications_enabled') ?? true;
+    });
+  }
+
   // hesap bilgilerin güncellemek için
   void _updateAccountInfo() {
     // print("Hesap bilgileri güncelleniyor..");
+    String newUsername =
+        _username; // Yeni kullanıcı adını tutacak geçici değişken
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Hesap Bilgilerini Düzenle"),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                // Mevcut e-posta adresi (düzenlenemez)
+                ListTile(
+                  title: const Text("E-posta Adresi"),
+                  subtitle: Text(_email),
+                  leading: const Icon(Icons.email),
+                ),
+                const SizedBox(height: 20),
+                // Kullanıcı adı için düzenlenebilir alan
+                TextFormField(
+                  initialValue: _username,
+                  decoration: const InputDecoration(
+                    labelText: "Yeni Kullanıcı Adı",
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.person),
+                  ),
+                  onChanged: (value) {
+                    newUsername = value; // Değişiklikleri yakala
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text("İptal"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            ElevatedButton(
+              child: const Text("Kaydet"),
+              onPressed: () {
+                setState(() {
+                  _username = newUsername.isNotEmpty
+                      ? newUsername
+                      : _username; // Boş değilse güncelle
+                });
+                Navigator.of(context).pop(); // Diyalogu kapat
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Kullanıcı adı başarıyla güncellendi!"),
+                  ),
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   // şifre değiştirme
   void _changePassword() {
     // print("şifre değişiriliyor..")
+    final _formKey = GlobalKey<FormState>();
+
+    // databaseden gelenlerle gidenler..
+    String oldPassword = '';
+    String newPassword = '';
+    String confirmNewPassword = '';
+
+    // normalde databaseden gelmeli
+    const String correctOldPassword = "123";
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Şifre Değiştir"),
+          content: SingleChildScrollView(
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                      labelText: "Mevcut Şifre",
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.lock_outline),
+                      contentPadding: EdgeInsets.symmetric(
+                        vertical: 12,
+                        horizontal: 16,
+                      ),
+                    ),
+                    onChanged: (value) => oldPassword = value,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "Lütfen mevcut şifrenizi girin.";
+                      }
+                      // sadece simülasyon
+                      if (value != correctOldPassword) {
+                        return "Mevcut şifreniz yanlış.";
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 15),
+                  TextFormField(
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                      labelText: "Yeni Şifre",
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.lock),
+                      contentPadding: EdgeInsets.symmetric(
+                        vertical: 12,
+                        horizontal: 16,
+                      ),
+                    ),
+                    onChanged: (value) => newPassword = value,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "Lütfen yeni şifrenizi girin.";
+                      }
+                      if (value.length < 6) {
+                        return "Şifre en az 6 karakter olmalı.";
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                      labelText: "Yeni Şifreyi Doğrula",
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.lock_person),
+                      contentPadding: EdgeInsets.symmetric(
+                        vertical: 12,
+                        horizontal: 16,
+                      ),
+                    ),
+                    onChanged: (value) => confirmNewPassword = value,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "Lütfen yeni şifrenizi tekrar girin.";
+                      }
+                      if (value != newPassword) {
+                        return "Şifreler uyuşmuyor.";
+                      }
+                      return null;
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text("İptal"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            ElevatedButton(
+              child: const Text("Kaydet"),
+              onPressed: () {
+                if (_formKey.currentState!.validate()) {
+                  // Şifreler başarıyla güncellendiğinde yapılacaklar.
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Şifreniz başarıyla değiştirildi!"),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                  // database güncellenmeli
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   // uygulama ayarlarını güncelle
   void _openAppSettings() {
     // print("uygulama ayarlarını düzenle...")
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Uygulama Ayarları"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    "Bildirimleri Etkinleştir",
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  StatefulBuilder(
+                    builder:
+                        (BuildContext context, StateSetter setStateInDialog) {
+                          return Switch(
+                            value: _enableNotifications,
+                            onChanged: (bool value) async {
+                              // Sadece diyalog içindeki state'i güncelle
+                              setStateInDialog(() {
+                                _enableNotifications = value;
+                              });
+
+                              // shared_preferences'a yeni değeri kaydet
+                              final prefs =
+                                  await SharedPreferences.getInstance();
+                              await prefs.setBool(
+                                'notifications_enabled',
+                                value,
+                              );
+                            },
+                          );
+                        },
+                  ),
+                ],
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text("Tamam"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   /// giriş yapıldığında kullanılacak fonksiyon
@@ -67,6 +330,10 @@ class _AccountScreenState extends State<AccountScreen> {
       _isLoggedIn = false;
       _username = "Misafir Kullanıcı";
       _email = "misafir@example.com";
+      // 👇 YENİ: Çıkış yapıldığında istatistikleri sıfırla.
+      _notesCount = 0;
+      _tasksCount = 0;
+      _completedTasksCount = 0;
     });
     ScaffoldMessenger.of(
       context,
@@ -315,6 +582,82 @@ class _AccountScreenState extends State<AccountScreen> {
     );
   }
 
+  Widget _buildStatsSection() {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Hesap İstatistikleri",
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+            const Divider(height: 20, thickness: 1, color: Colors.white),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildStatItem(
+                  icon: Icons.notes,
+                  label: "Notlar",
+                  count: _notesCount,
+                  color: Colors.blue,
+                ),
+                _buildStatItem(
+                  icon: Icons.assignment_outlined,
+                  label: "Görevler",
+                  count: _tasksCount,
+                  color: Colors.blue,
+                ),
+                _buildStatItem(
+                  icon: Icons.check_circle_outline,
+                  label: "Tamamlanan",
+                  count: _completedTasksCount,
+                  color: Colors.blue,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatItem({
+    required IconData icon,
+    required String label,
+    required int count,
+    required Color color,
+  }) {
+    return Column(
+      children: [
+        CircleAvatar(
+          backgroundColor: const Color.fromARGB(255, 230, 240, 255),
+          radius: 30,
+          child: Icon(icon, size: 30, color: color),
+        ),
+        const SizedBox(height: 8),
+        Text(label, style: const TextStyle(fontSize: 16, color: Colors.black)),
+        const SizedBox(height: 4),
+        Text(
+          count.toString(),
+          style: const TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -339,6 +682,9 @@ class _AccountScreenState extends State<AccountScreen> {
               _buildAccountInfoSection()
             else
               _buildLoginRegistrationSection(),
+            const SizedBox(height: 10),
+
+            if (_isLoggedIn) _buildStatsSection() else const SizedBox.shrink(),
             const SizedBox(height: 10),
 
             // open the account setting section, if user is logged in
