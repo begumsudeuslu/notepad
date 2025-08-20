@@ -48,11 +48,11 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Notepad'),
-        centerTitle: true,
-        backgroundColor: Colors.blue,
-      ),
+      // appBar: AppBar(
+      //   title: const Text('Notepad'),
+      //   centerTitle: true,
+      //   backgroundColor: Colors.blue,
+      // ),
       body: _pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
