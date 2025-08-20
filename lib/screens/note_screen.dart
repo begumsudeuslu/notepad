@@ -15,21 +15,30 @@ class NoteScreen extends StatefulWidget {
 
 class NoteScreenState extends State<NoteScreen> {
   List<Note> _notes = [];
+  List<Note> _foundNotes = [];
+
   bool _isLoading = false;
+  bool _isSearching = false;
+
   int? _editingNoteId;
+
   final TextEditingController _editingTitleController = TextEditingController();
-  final TextEditingController _editingContentController = TextEditingController();
+  final TextEditingController _editingContentController =
+      TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _refreshNotes();
+    _searchController.addListener(_filterNotes);
   }
 
   @override
   void dispose() {
     _editingTitleController.dispose();
     _editingContentController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -39,8 +48,26 @@ class NoteScreenState extends State<NoteScreen> {
     });
     final notes = await NotePadDatabase.instance.readAllNotes();
     setState(() {
-      _notes = notes;
+      _notes = notes.reversed.toList(); // yeni notlar üste eklenir
+      _foundNotes = _notes; // başlangıçta tüm notlar gösterilir
       _isLoading = false;
+    });
+  }
+
+  void _filterNotes() {
+    final query = _searchController.text.toLowerCase();
+    setState(() {
+      if (query.isEmpty) {
+        _foundNotes = _notes;
+      } else {
+        _foundNotes = _notes
+            .where(
+              (note) =>
+                  note.title.toLowerCase().contains(query) ||
+                  note.content.toLowerCase().contains(query),
+            )
+            .toList();
+      }
     });
   }
 
@@ -56,7 +83,9 @@ class NoteScreenState extends State<NoteScreen> {
 
   void _saveEditedNote() async {
     if (_editingNoteId != null) {
-      final noteToUpdate = _notes.firstWhere((note) => note.id == _editingNoteId);
+      final noteToUpdate = _notes.firstWhere(
+        (note) => note.id == _editingNoteId,
+      );
       final updatedNote = noteToUpdate.copy(
         title: _editingTitleController.text,
         content: _editingContentController.text,
@@ -82,14 +111,15 @@ class NoteScreenState extends State<NoteScreen> {
     });
   }
 
-  // Hata veren kısmı düzelterek notu silen fonksiyon
+  // notu silen fonksiyon
   void _deleteNote(int id, int index) async {
     final deletedNote = _notes[index];
     setState(() {
+      _foundNotes.removeAt(index);
       _notes.removeAt(index);
     });
 
-    // Kullanıcının notu geri alıp almadığını kontrol etmek için bir bayrak
+    // Kullanıcının notu geri alıp almadığını kontrol etmek için bir flag
     bool isUndo = false;
 
     final snackBar = SnackBar(
@@ -97,17 +127,20 @@ class NoteScreenState extends State<NoteScreen> {
       action: SnackBarAction(
         label: 'Geri Al',
         onPressed: () {
-          // 'Geri Al' butonuna basıldıysa bayrağı true yap
+          // 'Geri Al' butonuna basıldıysa flag is true
           isUndo = true;
           // Notu listeye geri ekle
           setState(() {
-            _notes.insert(index, deletedNote);
+            _notes.insert(0, deletedNote); // en üstte gösterilir
+            _foundNotes = _notes; // arama listesini günceller
           });
         },
       ),
     );
 
-    ScaffoldMessenger.of(context).showSnackBar(snackBar).closed.then((reason) async {
+    ScaffoldMessenger.of(context).showSnackBar(snackBar).closed.then((
+      reason,
+    ) async {
       // SnackBar kapandığında, eğer 'Geri Al' butonuna basılmadıysa notu veritabanından kalıcı olarak sil
       if (!isUndo) {
         await NotePadDatabase.instance.delete(id);
@@ -115,15 +148,13 @@ class NoteScreenState extends State<NoteScreen> {
     });
   }
 
-  void _showNoteDetail(BuildContext context, Note note)   {
+  void _showNoteDetail(BuildContext context, Note note) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(note.title),
-          content: SingleChildScrollView(
-            child: Text(note.content),
-          ),
+          content: SingleChildScrollView(child: Text(note.content)),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -146,79 +177,79 @@ class NoteScreenState extends State<NoteScreen> {
   }
 
   Widget _buildNoteCard(BuildContext context, Note note, bool isEditing) {
-  if (isEditing) {
+    if (isEditing) {
+      return Card(
+        elevation: 8,
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: Colors.blueAccent, width: 2),
+        ),
+        color: Colors.blue.withOpacity(0.1),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: _buildEditingNoteView(),
+        ),
+      );
+    }
+
     return Card(
-      elevation: 8,
+      elevation: 3,
       margin: const EdgeInsets.symmetric(vertical: 8),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: Colors.blueAccent, width: 2),
-      ),
-      color: Colors.blue.withOpacity(0.1),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: _buildEditingNoteView(),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Slidable(
+        key: ValueKey(note.id),
+        endActionPane: ActionPane(
+          motion: const ScrollMotion(),
+          children: [
+            SlidableAction(
+              onPressed: (context) => _startEditing(note),
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+              icon: Icons.edit,
+              label: 'Düzenle',
+            ),
+            SlidableAction(
+              onPressed: (context) {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: const Text("Notu Sil"),
+                      content: const Text(
+                        "Bu notu silmek istediğinize emin misiniz?",
+                      ),
+                      actions: <Widget>[
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(false),
+                          child: const Text("Hayır"),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop(true);
+                            final index = _notes.indexOf(note);
+                            if (index != -1) {
+                              _deleteNote(note.id!, index);
+                            }
+                          },
+                          child: const Text("Evet"),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              icon: Icons.delete,
+              label: 'Sil',
+            ),
+          ],
+        ),
+        child: _buildDisplayNoteView(note), // Balonun içeriği
       ),
     );
   }
-
-  return Card(
-    elevation: 3,
-    margin: const EdgeInsets.symmetric(vertical: 8),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(12),
-    ),
-    child: Slidable(
-      key: ValueKey(note.id),
-      endActionPane: ActionPane(
-        motion: const ScrollMotion(),
-        children: [
-          SlidableAction(
-            onPressed: (context) => _startEditing(note),
-            backgroundColor: Colors.blue,
-            foregroundColor: Colors.white,
-            icon: Icons.edit,
-            label: 'Düzenle',
-          ),
-          SlidableAction(
-            onPressed: (context) {
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    title: const Text("Notu Sil"),
-                    content: const Text("Bu notu silmek istediğinize emin misiniz?"),
-                    actions: <Widget>[
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(false),
-                        child: const Text("Hayır"),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop(true);
-                          final index = _notes.indexOf(note);
-                          if (index != -1) {
-                            _deleteNote(note.id!, index);
-                          }
-                        },
-                        child: const Text("Evet"),
-                      ),
-                    ],
-                  );
-                },
-              );
-            },
-            backgroundColor: Colors.red,
-            foregroundColor: Colors.white,
-            icon: Icons.delete,
-            label: 'Sil',
-          ),
-        ],
-      ),
-      child: _buildDisplayNoteView(note), // Balonun içeriği
-    ),
-  );
-}
 
   Widget _buildEditingNoteView() {
     return Column(
@@ -283,9 +314,12 @@ class NoteScreenState extends State<NoteScreen> {
         overflow: TextOverflow.ellipsis,
       ),
       // Yüksekliği daha tutarlı hale getirmek için bu parametreleri ayarlayın
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: 16.0,
+        vertical: 8.0,
+      ),
       isThreeLine: false, // subtitle 2 satır olduğu için bunu false yapın
-      onTap:() => _showNoteDetail(context, note),
+      onTap: () => _showNoteDetail(context, note),
     );
   }
 
@@ -293,15 +327,18 @@ class NoteScreenState extends State<NoteScreen> {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
-    if (_notes.isEmpty) {
+
+    final listToShow = _isSearching ? _foundNotes : _notes;
+
+    if (listToShow.isEmpty) {
       return _buildEmptyNotesMessage();
     }
     return SlidableAutoCloseBehavior(
       child: ListView.builder(
         padding: const EdgeInsets.all(12),
-        itemCount: _notes.length,
+        itemCount: listToShow.length,
         itemBuilder: (context, index) {
-          final note = _notes[index];
+          final note = listToShow[index];
           final isEditing = _editingNoteId == note.id;
           return _buildNoteCard(context, note, isEditing);
         },
@@ -334,17 +371,61 @@ class NoteScreenState extends State<NoteScreen> {
     );
   }
 
-  AppBar? _buildAppBar() {
-    if (_editingNoteId != null) {
-      return _buildEditingModeAppBar();
-    }
-    return null;
+  AppBar? _buildNormalAppBar() {
+    return AppBar(
+      backgroundColor: Colors.blue,
+      foregroundColor: Colors.white,
+      title: const Text('Notlarda ara'),
+      centerTitle: true,
+      actions: [
+        IconButton(
+          onPressed: () {
+            setState(() {
+              _isSearching = true;
+            });
+          },
+          icon: const Icon(Icons.search),
+        ),
+      ],
+    );
+  }
+
+  AppBar _buildSearchingAppBar() {
+    return AppBar(
+      backgroundColor: Colors.blue,
+      foregroundColor: Colors.white,
+      leading: IconButton(
+        onPressed: () {
+          setState(() {
+            _isSearching = false;
+            _searchController.clear();
+            FocusScope.of(context).unfocus(); // kalvyeyi kapatmak için
+            _refreshNotes();
+          });
+        },
+        icon: const Icon(Icons.arrow_back),
+      ),
+
+      title: TextField(
+        controller: _searchController,
+        autofocus: true,
+        cursorColor: Colors.white,
+        style: const TextStyle(color: Colors.white),
+        decoration: const InputDecoration(
+          hintText: 'Notlarda ara..',
+          hintStyle: TextStyle(color: Colors.white70),
+          border: InputBorder.none,
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: _buildAppBar(),
+      appBar: _editingNoteId != null
+          ? _buildEditingModeAppBar()
+          : (_isSearching ? _buildSearchingAppBar() : _buildNormalAppBar()),
       body: _buildNotesList(),
     );
   }
