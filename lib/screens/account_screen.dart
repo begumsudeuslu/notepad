@@ -51,66 +51,192 @@ class _AccountScreenState extends State<AccountScreen> {
   // hesap bilgilerin güncellemek için
   void _updateAccountInfo() {
     // print("Hesap bilgileri güncelleniyor..");
-      String newUsername = _username; // Yeni kullanıcı adını tutacak geçici değişken
+    String newUsername =
+        _username; // Yeni kullanıcı adını tutacak geçici değişken
 
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text("Hesap Bilgilerini Düzenle"),
-            content: SingleChildScrollView(
-              child: ListBody(
-                children: <Widget>[
-                  // Mevcut e-posta adresi (düzenlenemez)
-                  ListTile(
-                    title: const Text("E-posta Adresi"),
-                    subtitle: Text(_email),
-                    leading: const Icon(Icons.email),
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Hesap Bilgilerini Düzenle"),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                // Mevcut e-posta adresi (düzenlenemez)
+                ListTile(
+                  title: const Text("E-posta Adresi"),
+                  subtitle: Text(_email),
+                  leading: const Icon(Icons.email),
+                ),
+                const SizedBox(height: 20),
+                // Kullanıcı adı için düzenlenebilir alan
+                TextFormField(
+                  initialValue: _username,
+                  decoration: const InputDecoration(
+                    labelText: "Yeni Kullanıcı Adı",
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.person),
                   ),
-                  const SizedBox(height: 20),
-                  // Kullanıcı adı için düzenlenebilir alan
+                  onChanged: (value) {
+                    newUsername = value; // Değişiklikleri yakala
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text("İptal"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            ElevatedButton(
+              child: const Text("Kaydet"),
+              onPressed: () {
+                setState(() {
+                  _username = newUsername.isNotEmpty
+                      ? newUsername
+                      : _username; // Boş değilse güncelle
+                });
+                Navigator.of(context).pop(); // Diyalogu kapat
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Kullanıcı adı başarıyla güncellendi!"),
+                  ),
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // şifre değiştirme
+  void _changePassword() {
+    // print("şifre değişiriliyor..")
+    final _formKey = GlobalKey<FormState>();
+
+    // databaseden gelenlerle gidenler..
+    String oldPassword = '';
+    String newPassword = '';
+    String confirmNewPassword = '';
+
+    // normalde databaseden gelmeli
+    const String correctOldPassword = "123";
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Şifre Değiştir"),
+          content: SingleChildScrollView(
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
                   TextFormField(
-                    initialValue: _username,
+                    obscureText: true,
                     decoration: const InputDecoration(
-                      labelText: "Yeni Kullanıcı Adı",
+                      labelText: "Mevcut Şifre",
                       border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.person),
+                      prefixIcon: Icon(Icons.lock_outline),
+                      contentPadding: EdgeInsets.symmetric(
+                        vertical: 12,
+                        horizontal: 16,
+                      ),
                     ),
-                    onChanged: (value) {
-                      newUsername = value; // Değişiklikleri yakala
+                    onChanged: (value) => oldPassword = value,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "Lütfen mevcut şifrenizi girin.";
+                      }
+                      // sadeve simülasyon
+                      if (value != correctOldPassword) {
+                        return "Mevcut şifreniz yanlış.";
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 15),
+                  TextFormField(
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                      labelText: "Yeni Şifre",
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.lock),
+                      contentPadding: EdgeInsets.symmetric(
+                        vertical: 12,
+                        horizontal: 16,
+                      ),
+                    ),
+                    onChanged: (value) => newPassword = value,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "Lütfen yeni şifrenizi girin.";
+                      }
+                      if (value.length < 6) {
+                        return "Şifre en az 6 karakter olmalı.";
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                      labelText: "Yeni Şifreyi Doğrula",
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.lock_person),
+                      contentPadding: EdgeInsets.symmetric(
+                        vertical: 12,
+                        horizontal: 16,
+                      ),
+                    ),
+                    onChanged: (value) => confirmNewPassword = value,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "Lütfen yeni şifrenizi tekrar girin.";
+                      }
+                      if (value != newPassword) {
+                        return "Şifreler uyuşmuyor.";
+                      }
+                      return null;
                     },
                   ),
                 ],
               ),
             ),
-            actions: <Widget>[
-              TextButton(
-                child: const Text("İptal"),
-                onPressed: () {
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text("İptal"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            ElevatedButton(
+              child: const Text("Kaydet"),
+              onPressed: () {
+                if (_formKey.currentState!.validate()) {
+                  // Şifreler başarıyla güncellendiğinde yapılacaklar.
                   Navigator.of(context).pop();
-                },
-              ),
-              ElevatedButton(
-                child: const Text("Kaydet"),
-                onPressed: () {
-                  setState(() {
-                    _username = newUsername.isNotEmpty ? newUsername : _username; // Boş değilse güncelle
-                  });
-                  Navigator.of(context).pop(); // Diyalogu kapat
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Kullanıcı adı başarıyla güncellendi!")),
+                    const SnackBar(
+                      content: Text("Şifreniz başarıyla değiştirildi!"),
+                      backgroundColor: Colors.green,
+                    ),
                   );
-                },
-              ),
-            ],
-          );
-        },
-      );
-    }
-
-  // şifre değiştirme
-  void _changePassword() {
-    // print("şifre değişiriliyor..")
+                  // database güncellenmeli
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   // uygulama ayarlarını güncelle
