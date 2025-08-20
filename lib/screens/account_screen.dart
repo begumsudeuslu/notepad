@@ -51,7 +51,62 @@ class _AccountScreenState extends State<AccountScreen> {
   // hesap bilgilerin güncellemek için
   void _updateAccountInfo() {
     // print("Hesap bilgileri güncelleniyor..");
-  }
+      String newUsername = _username; // Yeni kullanıcı adını tutacak geçici değişken
+
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text("Hesap Bilgilerini Düzenle"),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: <Widget>[
+                  // Mevcut e-posta adresi (düzenlenemez)
+                  ListTile(
+                    title: const Text("E-posta Adresi"),
+                    subtitle: Text(_email),
+                    leading: const Icon(Icons.email),
+                  ),
+                  const SizedBox(height: 20),
+                  // Kullanıcı adı için düzenlenebilir alan
+                  TextFormField(
+                    initialValue: _username,
+                    decoration: const InputDecoration(
+                      labelText: "Yeni Kullanıcı Adı",
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.person),
+                    ),
+                    onChanged: (value) {
+                      newUsername = value; // Değişiklikleri yakala
+                    },
+                  ),
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: const Text("İptal"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              ElevatedButton(
+                child: const Text("Kaydet"),
+                onPressed: () {
+                  setState(() {
+                    _username = newUsername.isNotEmpty ? newUsername : _username; // Boş değilse güncelle
+                  });
+                  Navigator.of(context).pop(); // Diyalogu kapat
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Kullanıcı adı başarıyla güncellendi!")),
+                  );
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
 
   // şifre değiştirme
   void _changePassword() {
