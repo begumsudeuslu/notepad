@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'manage_signin_signup/login_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -11,6 +12,8 @@ class AccountScreen extends StatefulWidget {
 class _AccountScreenState extends State<AccountScreen> {
   // ilk olarak giriş yapılmadığını varsayalım
   bool _isLoggedIn = false;
+  bool _enableNotifications = true;
+
   String _username = "Misafir Kullanıcı";
   String _email = "misafir@example.com";
 
@@ -26,6 +29,7 @@ class _AccountScreenState extends State<AccountScreen> {
     if (_isLoggedIn) {
       _loadProductivityStats();
     }
+    _loadNotificationSetting();
   }
 
   // kimlik kontrolü burada yapılacak, kullanıcı giriş kontrolü database'den alınan verilerle olacak
@@ -45,6 +49,14 @@ class _AccountScreenState extends State<AccountScreen> {
       _notesCount = 12;
       _tasksCount = 5;
       _completedTasksCount = 3;
+    });
+  }
+
+  void _loadNotificationSetting() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      // Eğer daha önce kaydedilmiş bir değer varsa onu yükle, yoksa true olarak başlat.
+      _enableNotifications = prefs.getBool('notifications_enabled') ?? true;
     });
   }
 
@@ -153,7 +165,7 @@ class _AccountScreenState extends State<AccountScreen> {
                       if (value == null || value.isEmpty) {
                         return "Lütfen mevcut şifrenizi girin.";
                       }
-                      // sadeve simülasyon
+                      // sadece simülasyon
                       if (value != correctOldPassword) {
                         return "Mevcut şifreniz yanlış.";
                       }
@@ -242,6 +254,59 @@ class _AccountScreenState extends State<AccountScreen> {
   // uygulama ayarlarını güncelle
   void _openAppSettings() {
     // print("uygulama ayarlarını düzenle...")
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Uygulama Ayarları"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    "Bildirimleri Etkinleştir",
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  StatefulBuilder(
+                    builder:
+                        (BuildContext context, StateSetter setStateInDialog) {
+                          return Switch(
+                            value: _enableNotifications,
+                            onChanged: (bool value) async {
+                              // Sadece diyalog içindeki state'i güncelle
+                              setStateInDialog(() {
+                                _enableNotifications = value;
+                              });
+
+                              // shared_preferences'a yeni değeri kaydet
+                              final prefs =
+                                  await SharedPreferences.getInstance();
+                              await prefs.setBool(
+                                'notifications_enabled',
+                                value,
+                              );
+                            },
+                          );
+                        },
+                  ),
+                ],
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text("Tamam"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   /// giriş yapıldığında kullanılacak fonksiyon
