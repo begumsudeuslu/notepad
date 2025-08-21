@@ -371,62 +371,112 @@ class NoteScreenState extends State<NoteScreen> {
     );
   }
 
-  AppBar? _buildNormalAppBar() {
-    return AppBar(
-      backgroundColor: Colors.blue,
-      foregroundColor: Colors.white,
-      title: const Text('Notlarda ara'),
-      centerTitle: true,
-      actions: [
-        IconButton(
-          onPressed: () {
-            setState(() {
-              _isSearching = true;
-            });
-          },
-          icon: const Icon(Icons.search),
-        ),
-      ],
-    );
-  }
-
-  AppBar _buildSearchingAppBar() {
-    return AppBar(
-      backgroundColor: Colors.blue,
-      foregroundColor: Colors.white,
-      leading: IconButton(
-        onPressed: () {
-          setState(() {
-            _isSearching = false;
-            _searchController.clear();
-            FocusScope.of(context).unfocus(); // kalvyeyi kapatmak için
-            _refreshNotes();
-          });
-        },
-        icon: const Icon(Icons.arrow_back),
-      ),
-
-      title: TextField(
-        controller: _searchController,
-        autofocus: true,
-        cursorColor: Colors.white,
-        style: const TextStyle(color: Colors.white),
-        decoration: const InputDecoration(
-          hintText: 'Notlarda ara..',
-          hintStyle: TextStyle(color: Colors.white70),
-          border: InputBorder.none,
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: _editingNoteId != null
-          ? _buildEditingModeAppBar()
-          : (_isSearching ? _buildSearchingAppBar() : _buildNormalAppBar()),
-      body: _buildNotesList(),
+      body: _editingNoteId != null
+          ? Column(
+              children: [
+                _buildEditingModeAppBar(),
+                Expanded(child: _buildNotesList()),
+              ],
+            )
+          : CustomScrollView(
+              slivers: [
+                SliverAppBar(
+                  expandedHeight: 50.0,
+                  floating: true,
+                  pinned: true,
+                  elevation: 0,
+                  backgroundColor: const Color.fromARGB(255, 67, 122, 69),
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(
+                      bottom: Radius.circular(30),
+                    ),
+                  ),
+                  centerTitle: true,
+                  title: const Text(
+                    'Not Listesi',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
+                  ),
+                ),
+
+                // 🔽 Arama kutusu AppBar'ın altına taşındı
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                      child: TextField(
+                        controller: _searchController,
+                        cursorColor: Colors.black,
+                        style: const TextStyle(color: Colors.black),
+                        decoration: InputDecoration(
+                          hintText: 'Notlarda ara..',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(25),
+                            borderSide: BorderSide.none,
+                          ),
+                          prefixIcon: const Icon(
+                            Icons.search,
+                            color: Colors.grey,
+                          ),
+                          suffixIcon: _searchController.text.isNotEmpty
+                              ? IconButton(
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    _filterNotes();
+                                  },
+                                  icon: const Icon(
+                                    Icons.clear,
+                                    color: Colors.grey,
+                                  ),
+                                )
+                              : null,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 8,
+                          ),
+                        ),
+                        onChanged: (v) {
+                          setState(() {
+                            _filterNotes();
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+
+                // 🔽 Not listesi
+                SliverList(
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final note = _foundNotes[index];
+                    final isEditing = _editingNoteId == note.id;
+                    return _buildNoteCard(context, note, isEditing);
+                  }, childCount: _foundNotes.length),
+                ),
+
+                if (_foundNotes.isEmpty && !_isLoading)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: _buildEmptyNotesMessage(),
+                  ),
+              ],
+            ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: addNoteFromExternal,
+        backgroundColor: Colors.blue.shade500,
+        foregroundColor: Colors.white,
+        child: const Icon(Icons.add),
+      ),
     );
   }
 }
