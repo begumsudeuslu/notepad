@@ -24,7 +24,7 @@ class NotePadDatabase {
 
     return await openDatabase(
       path,
-      version: 3, // Artırılmış versiyon
+      version: 4, // Artırılmış versiyon
       onCreate: _createDB,
       onUpgrade: _upgradeDB,
     );
@@ -61,11 +61,16 @@ class NotePadDatabase {
         'ALTER TABLE tasks ADD COLUMN date INTEGER NOT NULL DEFAULT 0',
       );
     }
+
+    if(oldVersion<4)   {
+      await db.execute('ALTER TABLE notes ADD COLUMN updatedAt INTEGER',
+      );
+    }
   }
 
-  /// CRUD METHODS
+  ///CRUD METHODS
 
-  // NOTES
+  //NOTES
   Future<Note> create(Note note) async {
     final db = await instance.database;
     final id = await db.insert('notes', note.toMap());

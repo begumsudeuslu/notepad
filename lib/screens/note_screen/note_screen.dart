@@ -91,6 +91,7 @@ class NoteScreenState extends State<NoteScreen> {
       final updatedNote = noteToUpdate.copy(
         title: _editingTitleController.text,
         content: _editingContentController.text,
+        updatedAt: DateTime.now(),
       );
       await NotePadDatabase.instance.update(updatedNote);
       setState(() {

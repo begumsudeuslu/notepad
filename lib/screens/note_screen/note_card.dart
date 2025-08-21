@@ -9,11 +9,10 @@ class NoteCard extends StatelessWidget {
   final TextEditingController titleController;
   final TextEditingController contentController;
 
-  /// Aksiyonlar
-  final VoidCallback onStartEdit;   // Düzenlemeyi başlat
-  final VoidCallback onSaveEdit;    // Düzenlemeyi kaydet
-  final VoidCallback onDelete;      // Sil (onaydan sonra çağrılacak)
-  final VoidCallback onTap;         // Detay göster
+  final VoidCallback onStartEdit;
+  final VoidCallback onSaveEdit;
+  final VoidCallback onDelete;
+  final VoidCallback onTap;
 
   const NoteCard({
     super.key,
@@ -72,7 +71,9 @@ class NoteCard extends StatelessWidget {
                   builder: (BuildContext context) {
                     return AlertDialog(
                       title: const Text("Notu Sil"),
-                      content: const Text("Bu notu silmek istediğinize emin misiniz?"),
+                      content: const Text(
+                        "Bu notu silmek istediğinize emin misiniz?",
+                      ),
                       actions: <Widget>[
                         TextButton(
                           onPressed: () => Navigator.of(context).pop(false),
@@ -104,11 +105,26 @@ class NoteCard extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          subtitle: Text(
-            note.content,
-            style: const TextStyle(fontSize: 14, color: Colors.grey),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                note.content,
+                style: const TextStyle(fontSize: 14, color: Colors.grey),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 4),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  note.updatedAt != null
+                      ? 'Düzenlendi: ${note.updatedAt!.day}.${note.updatedAt!.month}.${note.updatedAt!.year} ${note.updatedAt!.hour}:${note.updatedAt!.minute}'
+                      : 'Oluşturuldu: ${note.createdAt.day}.${note.createdAt.month}.${note.createdAt.year} ${note.createdAt.hour}:${note.createdAt.minute}',
+                  style: const TextStyle(fontSize: 12, color: Colors.blueGrey),
+                ),
+              ),
+            ],
           ),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16.0,
