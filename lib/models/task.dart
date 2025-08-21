@@ -57,16 +57,22 @@ class Task {
 
   // MAP'TEN NESNEYE DÖNÜŞTÜR
   static Task fromMap(Map<String, dynamic> map) {
+    // created int, doğrudan alma
+    final createdAtInt = map['createdAt'] as int;
+
+    // date işlemini DateTime'a dönüştürme
+    final date = map['date'] != null
+        ? DateTime.fromMillisecondsSinceEpoch(map['date'] as int)
+        : DateTime.now();
+
     return Task(
-      id: map['id'],
-      title: map['title'],
-      description: map['description'],
+      id: map['id'] as int?,
+      title: map['title'] as String,
+      description: map['description'] as String?,
       isDone: map['isDone'] == 1,
-      createdAt: map['createdAt'] ?? DateTime.now().millisecondsSinceEpoch,
-      color: map['color'],
-      date: map['date'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(map['date'])
-          : DateTime.now(),
+      createdAt: createdAtInt, // dönüştürülmüş değer
+      color: map['color'] as String?,
+      date: date,
     );
   }
 }

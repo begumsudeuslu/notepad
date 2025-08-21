@@ -125,15 +125,16 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     final isEditing = widget.taskToEdit != null;
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEditing ? 'Görevi Düzenle' : 'Görev Ekle'),
-        backgroundColor: const Color(0xFFC3A5DE),
-        actions: [
-          TextButton(
-            onPressed: _saveTask,
-            style: TextButton.styleFrom(foregroundColor: Colors.white),
-            child: const Text('Kaydet'),
-          ),
-        ],
+        title: Text(
+          isEditing ? 'Görevi Düzenle' : 'Görev Ekle',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: const Color.fromARGB(255, 166, 128, 199),
+        centerTitle: true,
+        elevation: 0,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -141,42 +142,83 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  ElevatedButton(
+                    onPressed: _saveTask,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color.fromARGB(255, 166, 128, 199),
+                      foregroundColor: Colors.white,
+                    ),
+                    child: const Text('Kaydet'),
+                  ),
+                ],
+              ),
+
+              // const SizedBox(width: 16),
               TextField(
                 controller: _titleController,
-                decoration: const InputDecoration(labelText: 'Görev Başlığı'),
+                decoration: const InputDecoration(
+                  labelText: 'Görev Başlığı',
+                  border: OutlineInputBorder(),
+                ),
               ),
+              const SizedBox(height: 25),
               TextField(
                 controller: _descriptionController,
                 decoration: const InputDecoration(
                   labelText: 'Görev Açıklaması (isteğe bağlı)',
+                  border: OutlineInputBorder(),
                 ),
               ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Tarih: ${DateFormat('dd.MM.yyyy').format(_selectedDate)}',
+              const SizedBox(height: 50),
+
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  // Yeni eklenen Column
+                  children: [
+                    Row(
+                      // Tarih satırı
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Tarih: ${DateFormat('dd.MM.yyyy').format(_selectedDate)}',
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: _pickDate,
+                          child: const Text('Tarih Seç'),
+                        ),
+                      ],
                     ),
-                  ),
-                  TextButton(
-                    onPressed: _pickDate,
-                    child: const Text('Tarih Seç'),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Saat: ${_selectedTime != null ? _selectedTime!.format(context) : 'Seçilmedi'}',
+                    const SizedBox(
+                      height: 8,
+                    ), // Tarih ve saat satırları arasına boşluk
+                    Row(
+                      // Saat satırı
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Saat: ${_selectedTime != null ? _selectedTime!.format(context) : 'Seçilmedi'}',
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: _pickTime,
+                          child: const Text('Saat Seç'),
+                        ),
+                      ],
                     ),
-                  ),
-                  TextButton(
-                    onPressed: _pickTime,
-                    child: const Text('Saat Seç'),
-                  ),
-                ],
+                  ],
+                ),
               ),
               const SizedBox(height: 20),
               const Text(

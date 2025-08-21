@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:notepad/databases/database.dart';
+import 'package:notepad/screens/note_screen/note_screen.dart';
+import 'package:notepad/screens/task_screen/tasks_screen.dart';
 import 'manage_signin_signup/login_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -42,8 +45,9 @@ class _AccountScreenState extends State<AccountScreen> {
     });
   }
 
-  void _loadProductivityStats() {
+  void _loadProductivityStats() async {
     // Gerçek bir uygulamada burada veritabanından veya bir API'den veriler çekilir.
+
     // Şimdilik sabit değerler atayalım.
     setState(() {
       _notesCount = 12;
@@ -615,18 +619,36 @@ class _AccountScreenState extends State<AccountScreen> {
                   label: "Notlar",
                   count: _notesCount,
                   color: Color.fromARGB(255, 166, 128, 199),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => NoteScreen()),
+                    );
+                  },
                 ),
                 _buildStatItem(
                   icon: Icons.assignment_outlined,
                   label: "Görevler",
                   count: _tasksCount,
                   color: Color.fromARGB(255, 166, 128, 199),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => TasksScreen()),
+                    );
+                  },
                 ),
                 _buildStatItem(
                   icon: Icons.check_circle_outline,
                   label: "Tamamlanan",
                   count: _completedTasksCount,
                   color: Color.fromARGB(255, 166, 128, 199),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => TasksScreen()),
+                    );
+                  },
                 ),
               ],
             ),
@@ -641,26 +663,33 @@ class _AccountScreenState extends State<AccountScreen> {
     required String label,
     required int count,
     required Color color,
+    required VoidCallback onTap,
   }) {
-    return Column(
-      children: [
-        CircleAvatar(
-          backgroundColor: const Color.fromARGB(255, 230, 240, 255),
-          radius: 30,
-          child: Icon(icon, size: 30, color: color),
-        ),
-        const SizedBox(height: 8),
-        Text(label, style: const TextStyle(fontSize: 16, color: Colors.black)),
-        const SizedBox(height: 4),
-        Text(
-          count.toString(),
-          style: const TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          CircleAvatar(
+            backgroundColor: const Color.fromARGB(255, 230, 240, 255),
+            radius: 30,
+            child: Icon(icon, size: 30, color: color),
           ),
-        ),
-      ],
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 16, color: Colors.black),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            count.toString(),
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
