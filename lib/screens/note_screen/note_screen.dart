@@ -179,7 +179,6 @@ class NoteScreenState extends State<NoteScreen> {
     );
   }
 
-
   Widget _buildNotesList() {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
@@ -219,6 +218,7 @@ class NoteScreenState extends State<NoteScreen> {
       ),
     );
   }
+
   AppBar _buildEditingModeAppBar() {
     return AppBar(
       backgroundColor: Colors.blue,
@@ -261,7 +261,7 @@ class NoteScreenState extends State<NoteScreen> {
                   floating: true,
                   pinned: true,
                   elevation: 0,
-                  backgroundColor: const Color.fromARGB(255, 67, 122, 69),
+                  backgroundColor: const Color.fromARGB(255, 166, 128, 199),
                   shape: const RoundedRectangleBorder(
                     borderRadius: BorderRadius.vertical(
                       bottom: Radius.circular(30),
@@ -305,29 +305,28 @@ class NoteScreenState extends State<NoteScreen> {
                 ),
 
                 SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final note = _foundNotes[index];
-                      final isEditing = _editingNoteId == note.id;
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final note = _foundNotes[index];
+                    final isEditing = _editingNoteId == note.id;
 
-                      return NoteCard(
-                        note: note,
-                        isEditing: isEditing,
-                        titleController: _editingTitleController,
-                        contentController: _editingContentController,
-                        onStartEdit: () => _startEditing(note),
-                        onSaveEdit: _saveEditedNote,
-                        onDelete: () {
-                          final realIndex = _notes.indexWhere((n) => n.id == note.id);
-                          if (realIndex != -1 && note.id != null) {
-                            _deleteNote(note.id!, realIndex);
-                          }
-                        },
-                        onTap: () => _showNoteDetail(context, note),
-                      );
-                    },
-                    childCount: _foundNotes.length,
-                  ),
+                    return NoteCard(
+                      note: note,
+                      isEditing: isEditing,
+                      titleController: _editingTitleController,
+                      contentController: _editingContentController,
+                      onStartEdit: () => _startEditing(note),
+                      onSaveEdit: _saveEditedNote,
+                      onDelete: () {
+                        final realIndex = _notes.indexWhere(
+                          (n) => n.id == note.id,
+                        );
+                        if (realIndex != -1 && note.id != null) {
+                          _deleteNote(note.id!, realIndex);
+                        }
+                      },
+                      onTap: () => _showNoteDetail(context, note),
+                    );
+                  }, childCount: _foundNotes.length),
                 ),
 
                 if (_foundNotes.isEmpty && !_isLoading)
@@ -337,12 +336,13 @@ class NoteScreenState extends State<NoteScreen> {
                   ),
               ],
             ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: addNoteFromExternal,
-        backgroundColor: Colors.blue.shade500,
-        foregroundColor: Colors.white,
-        child: const Icon(Icons.add),
-      ),
+      // home_screen de tanımlandı o yüzden buradan kaldırıldı:)
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: addNoteFromExternal,
+      //   backgroundColor: Colors.blue.shade500,
+      //   foregroundColor: Colors.white,
+      //   child: const Icon(Icons.add),
+      // ),
     );
   }
 }

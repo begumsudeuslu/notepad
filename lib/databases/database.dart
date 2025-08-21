@@ -24,7 +24,7 @@ class NotePadDatabase {
 
     return await openDatabase(
       path,
-      version: 4, // Artırılmış versiyon
+      version: 5, // Artırılmış versiyon
       onCreate: _createDB,
       onUpgrade: _upgradeDB,
     );
@@ -33,13 +33,14 @@ class NotePadDatabase {
   Future _createDB(Database db, int version) async {
     // notes tablosu
     await db.execute('''
-      CREATE TABLE notes (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        content TEXT NOT NULL,
-        createdAt INTEGER NOT NULL
-      )
-    ''');
+  CREATE TABLE notes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    content TEXT NOT NULL,
+    createdAt INTEGER NOT NULL,
+    updatedAt INTEGER NOT NULL
+  )
+''');
 
     // tasks tablosu (date sütunu eklendi)
     await db.execute('''
@@ -55,22 +56,28 @@ class NotePadDatabase {
     ''');
   }
 
+  Future<void> resetDatabase() async {
+    final dbPath = await getDatabasesPath();
+    final path = join(dbPath, 'dbase.db'); // doğru dosya adı
+    await deleteDatabase(path);
+  }
+
   Future _upgradeDB(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 3) {
+    if (oldVersion < 5) {
       await db.execute(
         'ALTER TABLE tasks ADD COLUMN date INTEGER NOT NULL DEFAULT 0',
       );
     }
 
-    if(oldVersion<4)   {
-      await db.execute('ALTER TABLE notes ADD COLUMN updatedAt INTEGER',
-      );
+    if (oldVersion < 5) {
+      await db.execute('ALTER TABLE notes ADD COLUMN updatedAt INTEGER');
     }
   }
 
   ///CRUD METHODS
 
   //NOTES
+
   Future<Note> create(Note note) async {
     final db = await instance.database;
     final id = await db.insert('notes', note.toMap());

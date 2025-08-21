@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'register_screen.dart';
 import 'forgot_password_screen.dart';
 
-
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -69,10 +68,19 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Giriş Yap'),
-        centerTitle: false,
-        backgroundColor: Colors.blue,
+        title: const Text(
+          'Giriş Yap',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        // AppBar rengini tatlı mor yapıyoruz
+        backgroundColor: const Color(0xFFC3A5DE),
+        centerTitle: true,
+        elevation: 0,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+        ),
       ),
+
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -82,7 +90,7 @@ class _LoginScreenState extends State<LoginScreen> {
             const Icon(
               Icons.lock_person_outlined,
               size: 100,
-              color: Colors.blue,
+              color: Color(0xFFC3A5DE),
             ),
             const SizedBox(height: 10),
 
@@ -93,7 +101,7 @@ class _LoginScreenState extends State<LoginScreen> {
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Colors.blue,
+                color: Color(0xFFC3A5DE),
               ),
             ),
             const SizedBox(height: 20),
@@ -134,7 +142,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 onPressed: _goToForgotPassword,
                 child: const Text(
                   'Şifremi Unuttum?',
-                  style: TextStyle(color: Colors.blue),
+                  style: TextStyle(color: Colors.black),
                 ),
               ),
             ),
@@ -144,7 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ElevatedButton(
               onPressed: _handleLogin,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
+                backgroundColor: Color(0xFFC3A5DE),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 15),
                 shape: RoundedRectangleBorder(
@@ -162,7 +170,7 @@ class _LoginScreenState extends State<LoginScreen> {
               child: const Text(
                 "Hesabın yok mu? Kayıt ol",
                 style: TextStyle(
-                  color: Colors.blue,
+                  color: Colors.black,
                   fontWeight: FontWeight.bold,
                 ),
               ),

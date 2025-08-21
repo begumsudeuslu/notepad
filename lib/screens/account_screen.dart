@@ -87,7 +87,7 @@ class _AccountScreenState extends State<AccountScreen> {
                   decoration: const InputDecoration(
                     labelText: "Yeni Kullanıcı Adı",
                     border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.person),
+                    prefixIcon: Icon(Icons.person, color: Color(0xFFC3A5DE)),
                   ),
                   onChanged: (value) {
                     newUsername = value; // Değişiklikleri yakala
@@ -400,14 +400,20 @@ class _AccountScreenState extends State<AccountScreen> {
             const Divider(height: 20, thickness: 1),
 
             ListTile(
-              leading: const Icon(Icons.person_outline, color: Colors.blue),
+              leading: const Icon(
+                Icons.person_outline,
+                color: Color.fromARGB(255, 166, 128, 199),
+              ),
               title: const Text("Kullanıcı adı"),
               subtitle: Text(_username),
               horizontalTitleGap: 10.0,
             ),
 
             ListTile(
-              leading: const Icon(Icons.email_outlined, color: Colors.blue),
+              leading: const Icon(
+                Icons.email_outlined,
+                color: Color.fromARGB(255, 166, 128, 199),
+              ),
               title: const Text("E-posta adresi"),
               subtitle: Text(_email),
               horizontalTitleGap: 10.0,
@@ -608,19 +614,19 @@ class _AccountScreenState extends State<AccountScreen> {
                   icon: Icons.notes,
                   label: "Notlar",
                   count: _notesCount,
-                  color: Colors.blue,
+                  color: Color.fromARGB(255, 166, 128, 199),
                 ),
                 _buildStatItem(
                   icon: Icons.assignment_outlined,
                   label: "Görevler",
                   count: _tasksCount,
-                  color: Colors.blue,
+                  color: Color.fromARGB(255, 166, 128, 199),
                 ),
                 _buildStatItem(
                   icon: Icons.check_circle_outline,
                   label: "Tamamlanan",
                   count: _completedTasksCount,
-                  color: Colors.blue,
+                  color: Color.fromARGB(255, 166, 128, 199),
                 ),
               ],
             ),
@@ -662,9 +668,16 @@ class _AccountScreenState extends State<AccountScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Hesabım'),
-        centerTitle: false,
-        backgroundColor: Colors.blue,
+        title: const Text(
+          'Hesabım',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Color.fromARGB(255, 166, 128, 199),
+        centerTitle: true,
+        elevation: 0,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+        ),
       ),
 
       body: SingleChildScrollView(

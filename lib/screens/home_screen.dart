@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'note_screen/note_screen.dart';
 import 'task_screen/tasks_screen.dart';
 import 'account_screen.dart';
-import 'package:notepad/screens/task_screen/tasks_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -67,8 +66,8 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
-        selectedItemColor: Colors.blue,
-        unselectedItemColor: Colors.grey,
+        selectedItemColor: Color.fromARGB(255, 194, 163, 222),
+        unselectedItemColor: const Color.fromARGB(255, 106, 104, 104),
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.note), label: 'Notlar'),
           BottomNavigationBarItem(
@@ -84,14 +83,16 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButton: (_selectedIndex == 0 || _selectedIndex == 1)
           ? Padding(
               padding: const EdgeInsets.only(bottom: 0),
-              child: FloatingActionButton(
-                onPressed: _onAddPressed,
-                backgroundColor: Colors.blueAccent,
-                elevation: 8,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+              child: SizedBox(
+                width: 55, //yükseklik
+                height: 75,
+                child: FloatingActionButton(
+                  onPressed: _onAddPressed,
+                  backgroundColor: Color(0xFFC3A5DE),
+                  elevation: 8,
+                  shape: const CircleBorder(), //yuvarlak şekil
+                  child: const Icon(Icons.add, size: 30),
                 ),
-                child: const Icon(Icons.add, size: 30),
               ),
             )
           : null,
