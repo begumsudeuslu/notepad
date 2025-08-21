@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'note_screen.dart';
-import 'task_screen.dart';
+import 'task_screen/tasks_screen.dart';
 import 'account_screen.dart';
+import 'package:notepad/screens/task_screen/tasks_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -44,6 +45,15 @@ class _HomeScreenState extends State<HomeScreen> {
       _taskKey.currentState?.addTask();
     }
   }
+  // void _onAddPressed() {
+  //   if (_selectedIndex == 0) {
+  //     _noteKey.currentState?.addNoteFromExternal();
+  //   } else if (_selectedIndex == 1) {
+  //     // Incorrect: _taskKey.currentState?.addTask();
+  //     // Correct: Call the method that opens the add task dialog.
+  //     _taskKey.currentState?.showAddTaskDialog();
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -73,7 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButton: (_selectedIndex == 0 || _selectedIndex == 1)
           ? Padding(
-              padding: const EdgeInsets.only(bottom: 60),
+              padding: const EdgeInsets.only(bottom: 0),
               child: FloatingActionButton(
                 onPressed: _onAddPressed,
                 backgroundColor: Colors.blueAccent,
