@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'note_screen.dart';
+import 'note_screen/note_screen.dart';
 import 'task_screen/tasks_screen.dart';
 import 'account_screen.dart';
 import 'package:notepad/screens/task_screen/tasks_screen.dart';
