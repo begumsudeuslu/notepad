@@ -127,7 +127,6 @@ class NoteScreenState extends State<NoteScreen> {
 
     setState(() {
       _notes.removeWhere((n) => n.id == id);
-      _foundNotes.removeWhere((n) => n.id == id);
     });
 
     bool isUndo = false;
@@ -139,19 +138,7 @@ class NoteScreenState extends State<NoteScreen> {
         onPressed: () {
           isUndo = true;
           setState(() {
-            // En üste geri koy
             _notes.insert(0, deletedNote);
-
-            // Arama aktifse, eşleşiyorsa geri göster
-            final q = _searchController.text.toLowerCase();
-            final matches =
-                q.isEmpty ||
-                deletedNote.title.toLowerCase().contains(q) ||
-                deletedNote.content.toLowerCase().contains(q);
-
-            if (matches) {
-              _foundNotes.insert(0, deletedNote);
-            }
           });
         },
       ),
@@ -162,6 +149,7 @@ class NoteScreenState extends State<NoteScreen> {
         await NotePadDatabase.instance.delete(id);
       }
     });
+    _filterNotes();
   }
 
   void _showNoteDetail(BuildContext context, Note note) {
