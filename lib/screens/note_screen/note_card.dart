@@ -1,3 +1,4 @@
+// NoteCard.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import '../../models/note.dart';
@@ -7,6 +8,7 @@ class NoteCard extends StatelessWidget {
   final VoidCallback onDelete;
   final VoidCallback onTap;
   final VoidCallback onEdit;
+  final bool isGridView;
 
   const NoteCard({
     super.key,
@@ -14,6 +16,7 @@ class NoteCard extends StatelessWidget {
     required this.onDelete,
     required this.onTap,
     required this.onEdit,
+    required this.isGridView,
   });
 
   @override
@@ -68,42 +71,90 @@ class NoteCard extends StatelessWidget {
             ),
           ],
         ),
-        child: ListTile(
+        child: InkWell(
           onTap: onTap,
-          title: Text(
-            note.title,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                note.content,
-                style: const TextStyle(fontSize: 14, color: Colors.grey),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 4),
-              Align(
-                alignment: Alignment.centerRight,
-                child: Text(
-                  note.updatedAt != null
-                      ? 'Düzenlendi: ${note.updatedAt!.day}.${note.updatedAt!.month}.${note.updatedAt!.year} ${note.updatedAt!.hour}:${note.updatedAt!.minute}'
-                      : 'Oluşturuldu: ${note.createdAt.day}.${note.createdAt.month}.${note.createdAt.year} ${note.createdAt.hour}:${note.createdAt.minute}',
-                  style: const TextStyle(fontSize: 12, color: Colors.blueGrey),
-                ),
-              ),
-            ],
-          ),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16.0,
-            vertical: 8.0,
-          ),
-          isThreeLine: false,
+          borderRadius: BorderRadius.circular(12),
+          child: isGridView ? _buildGridViewContent() : _buildListViewContent(),
         ),
       ),
     );
+  }
+
+  Widget _buildListViewContent() {
+    // Liste görünümü için mevcut ListTile yapısını kullan.
+    return ListTile(
+      title: Text(
+        note.title,
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            note.content,
+            style: const TextStyle(fontSize: 14, color: Colors.grey),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 4),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Text(
+              _formatDate(),
+              style: const TextStyle(fontSize: 12, color: Colors.blueGrey),
+            ),
+          ),
+        ],
+      ),
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: 16.0,
+        vertical: 8.0,
+      ),
+      isThreeLine: false,
+    );
+  }
+
+  Widget _buildGridViewContent() {
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment:
+        MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                note.title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 8),
+              Text(note.content, maxLines: 4, overflow: TextOverflow.ellipsis),
+            ],
+          ),
+          Align(
+            alignment: Alignment.bottomRight,
+            child: Text(
+              _formatDate(),
+              style: const TextStyle(color: Colors.blueGrey, fontSize: 12),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatDate() {
+    final date = note.updatedAt ?? note.createdAt;
+    final prefix = note.updatedAt != null ? 'Düzenlendi' : 'Oluşturuldu';
+    return '$prefix: ${date.day}.${date.month}.${date.year} ${date.hour}:${date.minute}';
   }
 }

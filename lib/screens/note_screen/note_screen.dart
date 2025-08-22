@@ -220,6 +220,7 @@ class NoteScreenState extends State<NoteScreen> {
               },
               onTap: () => _showNoteDetail(context, note),
               onEdit: () => _editNote(context, note),
+              isGridView: false,
             );
           },
         ),
@@ -246,6 +247,7 @@ class NoteScreenState extends State<NoteScreen> {
             },
             onTap: () => _showNoteDetail(context, note),
             onEdit: () => _editNote(context, note),
+            isGridView: true,
           );
         },
       );
