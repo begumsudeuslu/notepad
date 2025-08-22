@@ -50,8 +50,8 @@ class NoteScreenState extends State<NoteScreen> {
     });
     final notes = await NotePadDatabase.instance.readAllNotes();
     setState(() {
-      _notes = notes.reversed.toList(); // yeni notlar üste eklenir
-      _foundNotes = _notes; // başlangıçta tüm notlar gösterilir
+      _notes = notes.reversed.toList();
+      _foundNotes = List<Note>.from(_notes); // <-- kopya
       _isLoading = false;
     });
   }
@@ -60,7 +60,7 @@ class NoteScreenState extends State<NoteScreen> {
     final query = _searchController.text.toLowerCase();
     setState(() {
       if (query.isEmpty) {
-        _foundNotes = _notes;
+        _foundNotes = List<Note>.from(_notes); // <-- kopya
       } else {
         _foundNotes = _notes
             .where(
@@ -68,7 +68,7 @@ class NoteScreenState extends State<NoteScreen> {
                   note.title.toLowerCase().contains(query) ||
                   note.content.toLowerCase().contains(query),
             )
-            .toList();
+            .toList(); // zaten kopya
       }
     });
   }
@@ -115,14 +115,16 @@ class NoteScreenState extends State<NoteScreen> {
   }
 
   // notu silen fonksiyon
-  void _deleteNote(int id, int index) async {
-    final deletedNote = _notes[index];
+  void _deleteNote(int id) async {
+    // Silmeden önce notu bul (undo için sakla)
+    final deletedNote = _notes.firstWhere((n) => n.id == id);
+
     setState(() {
-      _foundNotes.removeAt(index);
-      _notes.removeAt(index);
+      // Index yerine id ile güvenli sil
+      _notes.removeWhere((n) => n.id == id);
+      _foundNotes.removeWhere((n) => n.id == id);
     });
 
-    // Kullanıcının notu geri alıp almadığını kontrol etmek için bir flag
     bool isUndo = false;
 
     final snackBar = SnackBar(
@@ -130,21 +132,27 @@ class NoteScreenState extends State<NoteScreen> {
       action: SnackBarAction(
         label: 'Geri Al',
         onPressed: () {
-          // 'Geri Al' butonuna basıldıysa flag is true
           isUndo = true;
-          // Notu listeye geri ekle
           setState(() {
-            _notes.insert(0, deletedNote); // en üstte gösterilir
-            _foundNotes = _notes; // arama listesini günceller
+            // En üste geri koy
+            _notes.insert(0, deletedNote);
+
+            // Arama aktifse, eşleşiyorsa geri göster
+            final q = _searchController.text.toLowerCase();
+            final matches =
+                q.isEmpty ||
+                deletedNote.title.toLowerCase().contains(q) ||
+                deletedNote.content.toLowerCase().contains(q);
+
+            if (matches) {
+              _foundNotes.insert(0, deletedNote);
+            }
           });
         },
       ),
     );
 
-    ScaffoldMessenger.of(context).showSnackBar(snackBar).closed.then((
-      reason,
-    ) async {
-      // SnackBar kapandığında, eğer 'Geri Al' butonuna basılmadıysa notu veritabanından kalıcı olarak sil
+    ScaffoldMessenger.of(context).showSnackBar(snackBar).closed.then((_) async {
       if (!isUndo) {
         await NotePadDatabase.instance.delete(id);
       }
@@ -206,10 +214,8 @@ class NoteScreenState extends State<NoteScreen> {
             onStartEdit: () => _startEditing(note),
             onSaveEdit: _saveEditedNote,
             onDelete: () {
-              // _notes listesindeki indeks güvenli bulunsun:
-              final realIndex = _notes.indexWhere((n) => n.id == note.id);
-              if (realIndex != -1 && note.id != null) {
-                _deleteNote(note.id!, realIndex);
+              if (note.id != null) {
+                _deleteNote(note.id!);
               }
             },
             onTap: () => _showNoteDetail(context, note),
@@ -317,11 +323,8 @@ class NoteScreenState extends State<NoteScreen> {
                       onStartEdit: () => _startEditing(note),
                       onSaveEdit: _saveEditedNote,
                       onDelete: () {
-                        final realIndex = _notes.indexWhere(
-                          (n) => n.id == note.id,
-                        );
-                        if (realIndex != -1 && note.id != null) {
-                          _deleteNote(note.id!, realIndex);
+                        if (note.id != null) {
+                          _deleteNote(note.id!);
                         }
                       },
                       onTap: () => _showNoteDetail(context, note),

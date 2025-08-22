@@ -37,8 +37,7 @@ class NotePadDatabase {
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL,
     content TEXT NOT NULL,
-    createdAt INTEGER NOT NULL,
-    updatedAt INTEGER NOT NULL
+    createdAt INTEGER NOT NULL
   )
 ''');
 
