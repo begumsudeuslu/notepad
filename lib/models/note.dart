@@ -18,7 +18,7 @@ class Note   {
       'title': title,
       'content': content,
       'createdAt': createdAt.millisecondsSinceEpoch,
-      'updatedAt': createdAt.millisecondsSinceEpoch,
+      'updatedAt': updatedAt != null ? updatedAt!.millisecondsSinceEpoch : null,
     };
   }
 
@@ -29,8 +29,8 @@ class Note   {
       title: map['title'] as String, 
       content: map['content'] as String,
       createdAt: DateTime.fromMillisecondsSinceEpoch(map['createdAt'] as int), 
-      updatedAt: map['updatedAt']!=null ? DateTime.fromMillisecondsSinceEpoch(map['updatedAt'] as int): null,
-      );
+      updatedAt: (map['updatedAt'] != null && map['updatedAt'] != 0) ? DateTime.fromMillisecondsSinceEpoch(map['updatedAt'] as int) : null,
+    );
   }
 
   /// copy methodu

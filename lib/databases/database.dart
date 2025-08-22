@@ -37,7 +37,8 @@ class NotePadDatabase {
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL,
     content TEXT NOT NULL,
-    createdAt INTEGER NOT NULL
+    createdAt INTEGER NOT NULL,
+    updatedAt INTEGER
   )
 ''');
 
@@ -66,10 +67,6 @@ class NotePadDatabase {
       await db.execute(
         'ALTER TABLE tasks ADD COLUMN date INTEGER NOT NULL DEFAULT 0',
       );
-    }
-
-    if (oldVersion < 5) {
-      await db.execute('ALTER TABLE notes ADD COLUMN updatedAt INTEGER');
     }
   }
 
