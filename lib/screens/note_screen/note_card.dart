@@ -34,9 +34,11 @@ class NoteCard extends StatelessWidget {
         margin: const EdgeInsets.symmetric(vertical: 8),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: const BorderSide(color: Colors.blueAccent, width: 2),
+          side: const BorderSide(
+            color: Color.fromARGB(255, 128, 124, 124),
+            width: 2,
+          ),
         ),
-        color: Colors.blue.withOpacity(0.1),
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: EditingNoteView(

@@ -227,7 +227,7 @@ class NoteScreenState extends State<NoteScreen> {
 
   AppBar _buildEditingModeAppBar() {
     return AppBar(
-      backgroundColor: Colors.blue,
+      backgroundColor: const Color.fromARGB(255, 166, 128, 199),
       leading: IconButton(
         icon: const Icon(Icons.check),
         onPressed: _saveEditedNote,

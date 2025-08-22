@@ -48,7 +48,12 @@ class EditingNoteView extends StatelessWidget {
           child: ElevatedButton(
             onPressed: onSave,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue, // güncelleme gerekebilir
+              backgroundColor: const Color.fromARGB(
+                255,
+                123,
+                121,
+                121,
+              ), // güncelleme gerekebilir
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
