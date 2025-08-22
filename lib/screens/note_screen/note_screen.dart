@@ -15,6 +15,8 @@ class NoteScreen extends StatefulWidget {
   }
 }
 
+enum SortOption { latest, oldest, alphabetical }
+
 class NoteScreenState extends State<NoteScreen> {
   List<Note> _notes = [];
   List<Note> _foundNotes = [];
@@ -28,6 +30,8 @@ class NoteScreenState extends State<NoteScreen> {
   final TextEditingController _editingContentController =
       TextEditingController();
   final TextEditingController _searchController = TextEditingController();
+
+  SortOption _currentSortOption = SortOption.latest;
 
   @override
   void initState() {
@@ -50,10 +54,29 @@ class NoteScreenState extends State<NoteScreen> {
     });
     final notes = await NotePadDatabase.instance.readAllNotes();
     setState(() {
-      _notes = notes.reversed.toList();
-      _foundNotes = List<Note>.from(_notes); // <-- kopya
+      _notes = notes; // db'den al
+      _sortNotes();
+      _foundNotes = List<Note>.from(_notes); //kopya
       _isLoading = false;
     });
+  }
+
+  void _sortNotes() {
+    switch (_currentSortOption) {
+      case SortOption.latest:
+        _notes.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        break;
+      case SortOption.oldest:
+        _notes.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+        break;
+      case SortOption.alphabetical:
+        _notes.sort(
+          (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
+        );
+        break;
+    }
+    //sıralanan listeyi foundNotes'a yansıtılmalı
+    _filterNotes();
   }
 
   void _filterNotes() {
@@ -282,8 +305,36 @@ class NoteScreenState extends State<NoteScreen> {
                       fontSize: 20,
                     ),
                   ),
+                  actions: [
+                    PopupMenuButton<SortOption>(
+                      icon: const Icon(Icons.sort, color: Colors.white),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15.0),
+                      ),
+                      onSelected: (SortOption result) {
+                        setState(() {
+                          _currentSortOption = result;
+                          _sortNotes();
+                        });
+                      },
+                      itemBuilder: (BuildContext context) =>
+                          <PopupMenuEntry<SortOption>>[
+                            const PopupMenuItem<SortOption>(
+                              value: SortOption.latest,
+                              child: Text('En Yeni'),
+                            ),
+                            const PopupMenuItem<SortOption>(
+                              value: SortOption.oldest,
+                              child: Text('En Eski'),
+                            ),
+                            const PopupMenuItem<SortOption>(
+                              value: SortOption.alphabetical,
+                              child: Text('Alfabetik'),
+                            ),
+                          ],
+                    ),
+                  ],
                 ),
-
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
@@ -339,13 +390,6 @@ class NoteScreenState extends State<NoteScreen> {
                   ),
               ],
             ),
-      // home_screen de tanımlandı o yüzden buradan kaldırıldı:)
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: addNoteFromExternal,
-      //   backgroundColor: Colors.blue.shade500,
-      //   foregroundColor: Colors.white,
-      //   child: const Icon(Icons.add),
-      // ),
     );
   }
 }
