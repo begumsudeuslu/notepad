@@ -349,7 +349,7 @@ class _AccountScreenState extends State<AccountScreen> {
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
 
       decoration: BoxDecoration(
-        color: Colors.blue.shade50,
+        color: const Color.fromARGB(255, 249, 230, 254),
         borderRadius: BorderRadius.circular(10),
       ),
 
@@ -357,8 +357,12 @@ class _AccountScreenState extends State<AccountScreen> {
         children: [
           CircleAvatar(
             radius: 30,
-            backgroundColor: Colors.blueAccent.shade100,
-            child: Icon(Icons.person, size: 40, color: Colors.blue.shade800),
+            backgroundColor: const Color.fromARGB(255, 233, 192, 245),
+            child: Icon(
+              Icons.person,
+              size: 40,
+              color: const Color.fromARGB(255, 149, 21, 192),
+            ),
             //daha sonrasında profil iconu yerine fotoğraf konulabilir
           ),
           const SizedBox(width: 15),
