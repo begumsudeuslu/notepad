@@ -17,6 +17,8 @@ class NoteScreen extends StatefulWidget {
 
 enum SortOption { latest, oldest, alphabetical }
 
+enum ViewOption { list, grid }
+
 class NoteScreenState extends State<NoteScreen> {
   List<Note> _notes = [];
   List<Note> _foundNotes = [];
@@ -32,6 +34,7 @@ class NoteScreenState extends State<NoteScreen> {
   final TextEditingController _searchController = TextEditingController();
 
   SortOption _currentSortOption = SortOption.latest;
+  ViewOption _currentViewOption = ViewOption.list;
 
   @override
   void initState() {
@@ -221,9 +224,41 @@ class NoteScreenState extends State<NoteScreen> {
       return _buildEmptyNotesMessage();
     }
 
-    return SlidableAutoCloseBehavior(
-      child: ListView.builder(
+    if (_currentViewOption == ViewOption.list) {
+      return SlidableAutoCloseBehavior(
+        child: ListView.builder(
+          padding: const EdgeInsets.all(12),
+          itemCount: listToShow.length,
+          itemBuilder: (context, index) {
+            final note = listToShow[index];
+            final isEditing = _editingNoteId == note.id;
+
+            return NoteCard(
+              note: note,
+              isEditing: isEditing,
+              titleController: _editingTitleController,
+              contentController: _editingContentController,
+              onStartEdit: () => _startEditing(note),
+              onSaveEdit: _saveEditedNote,
+              onDelete: () {
+                if (note.id != null) {
+                  _deleteNote(note.id!);
+                }
+              },
+              onTap: () => _showNoteDetail(context, note),
+            );
+          },
+        ),
+      );
+    } else {
+      return GridView.builder(
         padding: const EdgeInsets.all(12),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2, //her satırda 2 note
+          childAspectRatio: 1.0, //genişlik/yükseklik oranı
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+        ),
         itemCount: listToShow.length,
         itemBuilder: (context, index) {
           final note = listToShow[index];
@@ -244,8 +279,8 @@ class NoteScreenState extends State<NoteScreen> {
             onTap: () => _showNoteDetail(context, note),
           );
         },
-      ),
-    );
+      );
+    }
   }
 
   AppBar _buildEditingModeAppBar() {
@@ -333,6 +368,22 @@ class NoteScreenState extends State<NoteScreen> {
                             ),
                           ],
                     ),
+                    IconButton(
+                      onPressed: () {
+                        setState(() {
+                          _currentViewOption =
+                              _currentViewOption == ViewOption.list
+                              ? ViewOption.grid
+                              : ViewOption.list;
+                        });
+                      },
+                      icon: Icon(
+                        _currentViewOption == ViewOption.list
+                            ? Icons.grid_view
+                            : Icons.list,
+                        color: Colors.white,
+                      ),
+                    ),
                   ],
                 ),
                 SliverToBoxAdapter(
@@ -361,33 +412,12 @@ class NoteScreenState extends State<NoteScreen> {
                   ),
                 ),
 
-                SliverList(
-                  delegate: SliverChildBuilderDelegate((context, index) {
-                    final note = _foundNotes[index];
-                    final isEditing = _editingNoteId == note.id;
-
-                    return NoteCard(
-                      note: note,
-                      isEditing: isEditing,
-                      titleController: _editingTitleController,
-                      contentController: _editingContentController,
-                      onStartEdit: () => _startEditing(note),
-                      onSaveEdit: _saveEditedNote,
-                      onDelete: () {
-                        if (note.id != null) {
-                          _deleteNote(note.id!);
-                        }
-                      },
-                      onTap: () => _showNoteDetail(context, note),
-                    );
-                  }, childCount: _foundNotes.length),
-                ),
-
-                if (_foundNotes.isEmpty && !_isLoading)
-                  SliverFillRemaining(
-                    hasScrollBody: false,
-                    child: _buildEmptyNotesMessage(),
+                SliverToBoxAdapter(
+                  child: SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.75,
+                    child: _buildNotesList(),
                   ),
+                ),
               ],
             ),
     );
