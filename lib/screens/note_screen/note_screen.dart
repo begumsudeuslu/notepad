@@ -214,30 +214,32 @@ class NoteScreenState extends State<NoteScreen> {
         ),
       );
     } else {
-      return GridView.builder(
-        padding: const EdgeInsets.all(12),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2, //her satırda 2 note
-          childAspectRatio: 1.0, //genişlik/yükseklik oranı
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-        ),
-        itemCount: listToShow.length,
-        itemBuilder: (context, index) {
-          final note = listToShow[index];
+      return SlidableAutoCloseBehavior(
+        child: GridView.builder(
+          padding: const EdgeInsets.all(12),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2, //her satırda 2 note
+            childAspectRatio: 1.0, //genişlik/yükseklik oranı
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+          ),
+          itemCount: listToShow.length,
+          itemBuilder: (context, index) {
+            final note = listToShow[index];
 
-          return NoteCard(
-            note: note,
-            onDelete: () {
-              if (note.id != null) {
-                _deleteNote(note.id!);
-              }
-            },
-            onTap: () => _showNoteDetail(context, note),
-            onEdit: () => _editNote(context, note),
-            isGridView: true,
-          );
-        },
+            return NoteCard(
+              note: note,
+              onDelete: () {
+                if (note.id != null) {
+                  _deleteNote(note.id!);
+                }
+              },
+              onTap: () => _showNoteDetail(context, note),
+              onEdit: () => _editNote(context, note),
+              isGridView: true,
+            );
+          },
+        ),
       );
     }
   }

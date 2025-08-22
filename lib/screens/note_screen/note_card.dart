@@ -136,7 +136,11 @@ class NoteCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 8),
-              Text(note.content, maxLines: 4, overflow: TextOverflow.ellipsis),
+              Text(
+                note.content, 
+                maxLines: 4, 
+                overflow: TextOverflow.ellipsis
+              ),
             ],
           ),
           Align(
