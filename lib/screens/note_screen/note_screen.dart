@@ -189,7 +189,7 @@ class NoteScreenState extends State<NoteScreen> {
 
     if (listToShow.isEmpty) {
       return _buildEmptyNotesMessage();
-    }
+    } 
 
     if (_currentViewOption == ViewOption.list) {
       return SlidableAutoCloseBehavior(
