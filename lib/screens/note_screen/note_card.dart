@@ -1,55 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import '../../models/note.dart';
-import 'editing_note_view.dart';
 
 class NoteCard extends StatelessWidget {
   final Note note;
-  final bool isEditing;
-  final TextEditingController titleController;
-  final TextEditingController contentController;
-
-  final VoidCallback onStartEdit;
-  final VoidCallback onSaveEdit;
   final VoidCallback onDelete;
   final VoidCallback onTap;
+  final VoidCallback onEdit;
 
   const NoteCard({
     super.key,
     required this.note,
-    required this.isEditing,
-    required this.titleController,
-    required this.contentController,
-    required this.onStartEdit,
-    required this.onSaveEdit,
     required this.onDelete,
     required this.onTap,
+    required this.onEdit,
   });
 
   @override
   Widget build(BuildContext context) {
-    if (isEditing) {
-      return Card(
-        elevation: 8,
-        margin: const EdgeInsets.symmetric(vertical: 8),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: const BorderSide(
-            color: Color.fromARGB(255, 128, 124, 124),
-            width: 2,
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: EditingNoteView(
-            titleController: titleController,
-            contentController: contentController,
-            onSave: onSaveEdit,
-          ),
-        ),
-      );
-    }
-
     return Card(
       elevation: 3,
       margin: const EdgeInsets.symmetric(vertical: 8),
@@ -60,7 +28,7 @@ class NoteCard extends StatelessWidget {
           motion: const ScrollMotion(),
           children: [
             SlidableAction(
-              onPressed: (context) => onStartEdit(),
+              onPressed: (context) => onEdit(),
               backgroundColor: Colors.blue,
               foregroundColor: Colors.white,
               icon: Icons.edit,
@@ -101,6 +69,7 @@ class NoteCard extends StatelessWidget {
           ],
         ),
         child: ListTile(
+          onTap: onTap,
           title: Text(
             note.title,
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -133,7 +102,6 @@ class NoteCard extends StatelessWidget {
             vertical: 8.0,
           ),
           isThreeLine: false,
-          onTap: onTap,
         ),
       ),
     );

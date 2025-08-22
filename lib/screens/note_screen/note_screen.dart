@@ -4,6 +4,7 @@ import '../../models/note.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'note_card.dart';
 import 'search_bar.dart';
+import 'note_editing_page.dart';
 
 class NoteScreen extends StatefulWidget {
   final VoidCallback? onAddNote;
@@ -94,7 +95,7 @@ class NoteScreenState extends State<NoteScreen> {
                   note.title.toLowerCase().contains(query) ||
                   note.content.toLowerCase().contains(query),
             )
-            .toList(); // zaten kopya
+            .toList(); //zaten kopya
       }
     });
   }
@@ -109,44 +110,22 @@ class NoteScreenState extends State<NoteScreen> {
     _refreshNotes();
   }
 
-  void _saveEditedNote() async {
-    if (_editingNoteId != null) {
-      final noteToUpdate = _notes.firstWhere(
-        (note) => note.id == _editingNoteId,
-      );
-      final updatedNote = noteToUpdate.copy(
-        title: _editingTitleController.text,
-        content: _editingContentController.text,
-        updatedAt: DateTime.now(),
-      );
+  void _editNote(BuildContext context, Note note) async {
+    final updatedNote = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => NoteEditingPage(note: note)),
+    );
+
+    if (updatedNote != null && updatedNote is Note) {
       await NotePadDatabase.instance.update(updatedNote);
-      setState(() {
-        _editingNoteId = null;
-        _editingContentController.clear();
-        _editingTitleController.clear();
-      });
       _refreshNotes();
     }
   }
 
-  void _startEditing(Note note) {
-    setState(() {
-      if (_editingNoteId != null) {
-        _saveEditedNote();
-      }
-      _editingNoteId = note.id;
-      _editingTitleController.text = note.title;
-      _editingContentController.text = note.content;
-    });
-  }
-
-  // notu silen fonksiyon
   void _deleteNote(int id) async {
-    // Silmeden önce notu bul (undo için sakla)
     final deletedNote = _notes.firstWhere((n) => n.id == id);
 
     setState(() {
-      // Index yerine id ile güvenli sil
       _notes.removeWhere((n) => n.id == id);
       _foundNotes.removeWhere((n) => n.id == id);
     });
@@ -231,21 +210,16 @@ class NoteScreenState extends State<NoteScreen> {
           itemCount: listToShow.length,
           itemBuilder: (context, index) {
             final note = listToShow[index];
-            final isEditing = _editingNoteId == note.id;
 
             return NoteCard(
               note: note,
-              isEditing: isEditing,
-              titleController: _editingTitleController,
-              contentController: _editingContentController,
-              onStartEdit: () => _startEditing(note),
-              onSaveEdit: _saveEditedNote,
               onDelete: () {
                 if (note.id != null) {
                   _deleteNote(note.id!);
                 }
               },
               onTap: () => _showNoteDetail(context, note),
+              onEdit: () => _editNote(context, note),
             );
           },
         ),
@@ -262,164 +236,124 @@ class NoteScreenState extends State<NoteScreen> {
         itemCount: listToShow.length,
         itemBuilder: (context, index) {
           final note = listToShow[index];
-          final isEditing = _editingNoteId == note.id;
 
           return NoteCard(
             note: note,
-            isEditing: isEditing,
-            titleController: _editingTitleController,
-            contentController: _editingContentController,
-            onStartEdit: () => _startEditing(note),
-            onSaveEdit: _saveEditedNote,
             onDelete: () {
               if (note.id != null) {
                 _deleteNote(note.id!);
               }
             },
             onTap: () => _showNoteDetail(context, note),
+            onEdit: () => _editNote(context, note),
           );
         },
       );
     }
   }
 
-  AppBar _buildEditingModeAppBar() {
-    return AppBar(
-      backgroundColor: const Color.fromARGB(255, 166, 128, 199),
-      leading: IconButton(
-        icon: const Icon(Icons.check),
-        onPressed: _saveEditedNote,
-        tooltip: 'Değişiklikleri Kaydet',
-      ),
-      title: const Text('Notu Düzenle'),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.cancel),
-          onPressed: () {
-            setState(() {
-              _editingNoteId = null;
-              _editingTitleController.clear();
-              _editingContentController.clear();
-            });
-          },
-          tooltip: 'İptal Et',
-        ),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _editingNoteId != null
-          ? Column(
-              children: [
-                _buildEditingModeAppBar(),
-                Expanded(child: _buildNotesList()),
-              ],
-            )
-          : CustomScrollView(
-              slivers: [
-                SliverAppBar(
-                  expandedHeight: 50.0,
-                  floating: true,
-                  pinned: true,
-                  elevation: 0,
-                  backgroundColor: const Color.fromARGB(255, 166, 128, 199),
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.vertical(
-                      bottom: Radius.circular(30),
-                    ),
-                  ),
-                  centerTitle: true,
-                  title: const Text(
-                    'Not Listesi',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20,
-                    ),
-                  ),
-                  actions: [
-                    PopupMenuButton<SortOption>(
-                      icon: const Icon(Icons.sort, color: Colors.white),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15.0),
-                      ),
-                      onSelected: (SortOption result) {
-                        setState(() {
-                          _currentSortOption = result;
-                          _sortNotes();
-                        });
-                      },
-                      itemBuilder: (BuildContext context) =>
-                          <PopupMenuEntry<SortOption>>[
-                            const PopupMenuItem<SortOption>(
-                              value: SortOption.latest,
-                              child: Text('En Yeni'),
-                            ),
-                            const PopupMenuItem<SortOption>(
-                              value: SortOption.oldest,
-                              child: Text('En Eski'),
-                            ),
-                            const PopupMenuItem<SortOption>(
-                              value: SortOption.alphabetical,
-                              child: Text('Alfabetik'),
-                            ),
-                          ],
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        setState(() {
-                          _currentViewOption =
-                              _currentViewOption == ViewOption.list
-                              ? ViewOption.grid
-                              : ViewOption.list;
-                        });
-                      },
-                      icon: Icon(
-                        _currentViewOption == ViewOption.list
-                            ? Icons.grid_view
-                            : Icons.list,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade200,
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                      child: SearchBarWidget(
-                        controller: _searchController,
-                        onChanged: (value) {
-                          setState(() {
-                            _filterNotes();
-                          });
-                        },
-                        onClear: () {
-                          _searchController.clear();
-                          setState(() {
-                            _filterNotes();
-                          });
-                        },
-                      ),
-                    ),
-                  ),
-                ),
-
-                SliverToBoxAdapter(
-                  child: SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.75,
-                    child: _buildNotesList(),
-                  ),
-                ),
-              ],
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 50.0,
+            floating: true,
+            pinned: true,
+            elevation: 0,
+            backgroundColor: const Color.fromARGB(255, 166, 128, 199),
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
             ),
+            centerTitle: true,
+            title: const Text(
+              'Not Listesi',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+              ),
+            ),
+            actions: [
+              PopupMenuButton<SortOption>(
+                icon: const Icon(Icons.sort, color: Colors.white),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15.0),
+                ),
+                onSelected: (SortOption result) {
+                  setState(() {
+                    _currentSortOption = result;
+                    _sortNotes();
+                  });
+                },
+                itemBuilder: (BuildContext context) =>
+                    <PopupMenuEntry<SortOption>>[
+                      const PopupMenuItem<SortOption>(
+                        value: SortOption.latest,
+                        child: Text('En Yeni'),
+                      ),
+                      const PopupMenuItem<SortOption>(
+                        value: SortOption.oldest,
+                        child: Text('En Eski'),
+                      ),
+                      const PopupMenuItem<SortOption>(
+                        value: SortOption.alphabetical,
+                        child: Text('Alfabetik'),
+                      ),
+                    ],
+              ),
+              IconButton(
+                onPressed: () {
+                  setState(() {
+                    _currentViewOption = _currentViewOption == ViewOption.list
+                        ? ViewOption.grid
+                        : ViewOption.list;
+                  });
+                },
+                icon: Icon(
+                  _currentViewOption == ViewOption.list
+                      ? Icons.grid_view
+                      : Icons.list,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(25),
+                ),
+                child: SearchBarWidget(
+                  controller: _searchController,
+                  onChanged: (value) {
+                    setState(() {
+                      _filterNotes();
+                    });
+                  },
+                  onClear: () {
+                    _searchController.clear();
+                    setState(() {
+                      _filterNotes();
+                    });
+                  },
+                ),
+              ),
+            ),
+          ),
+
+          SliverToBoxAdapter(
+            child: SizedBox(
+              height: MediaQuery.of(context).size.height * 0.75,
+              child: _buildNotesList(),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
