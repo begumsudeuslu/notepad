@@ -23,7 +23,9 @@ class NoteCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 3,
-      margin: const EdgeInsets.symmetric(vertical: 8),
+      margin: const EdgeInsets.symmetric(
+        vertical: 6,
+      ), // distance between  notes
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Slidable(
         key: ValueKey(note.id),
@@ -130,7 +132,9 @@ class NoteCard extends StatelessWidget {
 
   Widget _buildGridViewContent() {
     return Container(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(
+        12.0,
+      ), // padding is inside the container, margin is arround the container
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,

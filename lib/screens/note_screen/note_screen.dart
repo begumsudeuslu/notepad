@@ -221,7 +221,7 @@ class NoteScreenState extends State<NoteScreen> {
             crossAxisCount: 2, //her satırda 2 note
             childAspectRatio: 1.0, //genişlik/yükseklik oranı
             crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
+            mainAxisSpacing: 5,
           ),
           itemCount: listToShow.length,
           itemBuilder: (context, index) {
