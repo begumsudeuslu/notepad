@@ -74,7 +74,19 @@ class NoteCard extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
-          child: isGridView ? _buildGridViewContent() : _buildListViewContent(),
+          child: Container(
+            decoration: ShapeDecoration(
+              shape:
+                  Theme.of(context).cardTheme.shape ??
+                  const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(12.0)),
+                  ),
+              color: Theme.of(context).cardColor,
+            ),
+            child: isGridView
+                ? _buildGridViewContent()
+                : _buildListViewContent(),
+          ),
         ),
       ),
     );
@@ -136,11 +148,7 @@ class NoteCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 8),
-              Text(
-                note.content, 
-                maxLines: 4, 
-                overflow: TextOverflow.ellipsis
-              ),
+              Text(note.content, maxLines: 4, overflow: TextOverflow.ellipsis),
             ],
           ),
           Align(
