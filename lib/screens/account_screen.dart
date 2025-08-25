@@ -334,7 +334,6 @@ class _AccountScreenState extends State<AccountScreen> {
       _isLoggedIn = false;
       _username = "Misafir Kullanıcı";
       _email = "misafir@example.com";
-      // 👇 YENİ: Çıkış yapıldığında istatistikleri sıfırla.
       _notesCount = 0;
       _tasksCount = 0;
       _completedTasksCount = 0;
