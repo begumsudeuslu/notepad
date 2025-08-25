@@ -27,7 +27,7 @@ class NoteScreenState extends State<NoteScreen> {
   bool _isLoading = false;
   bool _isSearching = false;
 
-  int? _editingNoteId;
+  //int? _editingNoteId;
 
   final TextEditingController _editingTitleController = TextEditingController();
   final TextEditingController _editingContentController =
