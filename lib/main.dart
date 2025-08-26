@@ -19,7 +19,25 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Notepad App',
-      theme: ThemeData(primarySwatch: Colors.blue, useMaterial3: false),
+      theme: ThemeData(
+        primaryColor: Color.fromARGB(255, 173, 134, 207),
+        useMaterial3: false,
+        inputDecorationTheme: const InputDecorationTheme(
+          prefixIconColor: Color.fromARGB(255, 173, 134, 207), // ikon mor
+          floatingLabelStyle: TextStyle(
+            color: Color.fromARGB(255, 173, 134, 207), // focus olunca label mor
+          ),
+          labelStyle: TextStyle(
+            color: Colors.grey, // normal label gri
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+              color: Color.fromARGB(255, 173, 134, 207), // focus border mor
+              width: 2,
+            ),
+          ),
+        ),
+      ),
       home: const HomeScreen(),
     );
   }

@@ -73,7 +73,7 @@ class _LoginScreenState extends State<LoginScreen> {
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         // AppBar rengini tatlı mor yapıyoruz
-        backgroundColor: const Color(0xFFC3A5DE),
+        backgroundColor: Color.fromARGB(255, 166, 128, 199),
         centerTitle: true,
         elevation: 0,
         shape: const RoundedRectangleBorder(
@@ -152,7 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ElevatedButton(
               onPressed: _handleLogin,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFFC3A5DE),
+                backgroundColor: Color.fromARGB(255, 173, 134, 207),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 15),
                 shape: RoundedRectangleBorder(

@@ -40,7 +40,6 @@ class _NoteEditingPageState extends State<NoteEditingPage> {
       );
 
       Navigator.of(context).pop(updatedNote);
-
     } else {
       Navigator.of(context).pop();
     }
@@ -67,7 +66,6 @@ class _NoteEditingPageState extends State<NoteEditingPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-    
             TextField(
               controller: _titleController,
               decoration: const InputDecoration(
@@ -77,7 +75,7 @@ class _NoteEditingPageState extends State<NoteEditingPage> {
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             const Divider(height: 10, thickness: 1),
-       
+
             Expanded(
               child: TextField(
                 controller: _contentController,
@@ -86,6 +84,7 @@ class _NoteEditingPageState extends State<NoteEditingPage> {
                 decoration: const InputDecoration(
                   hintText: 'Notunuzu buraya yazın...',
                   border: InputBorder.none,
+                  focusedBorder: InputBorder.none,
                 ),
                 style: const TextStyle(fontSize: 18),
               ),

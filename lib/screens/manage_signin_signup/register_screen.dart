@@ -55,9 +55,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Kayıt Ol'),
-        centerTitle: false,
-        backgroundColor: Colors.blue,
+        title: const Text(
+          'Kayıt Ol ',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        // AppBar rengini tatlı mor yapıyoruz
+        backgroundColor: Color.fromARGB(255, 166, 128, 199),
+        centerTitle: true,
+        elevation: 0,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -67,7 +75,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             const Icon(
               Icons.person_add_alt_1_outlined,
               size: 100,
-              color: Colors.blue,
+              color: Color(0xFFC3A5DE),
             ),
             const SizedBox(height: 10),
 
@@ -77,7 +85,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Colors.blue,
+                color: Color(0xFFC3A5DE),
               ),
             ),
             const SizedBox(height: 20),
@@ -85,13 +93,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
             // Kullanıcı Adı Girişi
             TextField(
               controller: _usernameController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Kullanıcı Adı',
                 hintText: 'örn: mustafa_2024',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(10)),
                 ),
-                prefixIcon: Icon(Icons.person),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(
+                    color: Color.fromARGB(255, 173, 134, 207),
+                    width: 2.0,
+                  ),
+                ),
+                prefixIcon: Icon(
+                  Icons.person,
+                  color: Color.fromARGB(255, 173, 134, 207),
+                ),
               ),
             ),
             const SizedBox(height: 15),
@@ -99,13 +117,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
             // E-posta Girişi
             TextField(
               controller: _emailController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'E-posta',
                 hintText: 'ornek@mail.com',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(10)),
                 ),
-                prefixIcon: Icon(Icons.email),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(
+                    color: Color.fromARGB(255, 173, 134, 207),
+                    width: 2.0,
+                  ),
+                ),
+                prefixIcon: Icon(
+                  Icons.email,
+                  color: Color.fromARGB(255, 173, 134, 207),
+                ),
               ),
               keyboardType: TextInputType.emailAddress,
             ),
@@ -114,12 +142,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
             // Şifre Girişi
             TextField(
               controller: _passwordController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Şifre',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(10)),
                 ),
-                prefixIcon: Icon(Icons.lock),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(
+                    color: Color.fromARGB(255, 173, 134, 207),
+                    width: 2.0,
+                  ),
+                ),
+                prefixIcon: Icon(
+                  Icons.lock,
+                  color: Color.fromARGB(255, 173, 134, 207),
+                ),
               ),
               obscureText: true,
             ),
@@ -129,7 +167,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ElevatedButton(
               onPressed: _handleRegister,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
+                backgroundColor: Color.fromARGB(255, 173, 134, 207),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 15),
                 shape: RoundedRectangleBorder(
