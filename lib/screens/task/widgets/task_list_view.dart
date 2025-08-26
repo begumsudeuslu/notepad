@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:notepad/models/task.dart';
-import '../task_screen/task_card.dart';
+import 'task_card.dart';
 
 class TaskListView extends StatelessWidget {
   final List<Task> filteredTasks;

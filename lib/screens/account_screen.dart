@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:notepad/databases/database.dart';
 import 'package:notepad/screens/note_screen/note_screen.dart';
-import 'package:notepad/screens/task_screen/tasks_screen.dart';
+import 'package:notepad/screens/task/screens/tasks_screen.dart';
 import 'manage_signin_signup/login_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

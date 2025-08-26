@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:notepad/databases/database.dart';
 import 'package:notepad/models/task.dart';
-import '../task_screen/color_circle.dart';
+import 'color_circle.dart';
 
 Future<void> showAddTaskDialog(
   BuildContext context,

@@ -241,18 +241,18 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                     '33FF57',
                     (color) => setState(() => _selectedColor = color),
                   ),
-                  _buildColorCircle(
-                    '33B5FF',
-                    (color) => setState(() => _selectedColor = color),
-                  ),
-                  _buildColorCircle(
-                    'C3A5DE',
-                    (color) => setState(() => _selectedColor = color),
-                  ),
-                  _buildColorCircle(
-                    '8A2BE2',
-                    (color) => setState(() => _selectedColor = color),
-                  ),
+                  // _buildColorCircle(
+                  //   '33B5FF',
+                  //   (color) => setState(() => _selectedColor = color),
+                  // ),
+                  // _buildColorCircle(
+                  //   'C3A5DE',
+                  //   (color) => setState(() => _selectedColor = color),
+                  // ),
+                  // _buildColorCircle(
+                  //   '8A2BE2',
+                  //   (color) => setState(() => _selectedColor = color),
+                  // ),
                 ],
               ),
               const SizedBox(height: 20),

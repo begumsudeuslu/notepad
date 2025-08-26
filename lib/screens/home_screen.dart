@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'note_screen/note_screen.dart';
-import 'task_screen/tasks_screen.dart';
+import 'task/screens/tasks_screen.dart';
 import 'account_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() {
-    return _HomeScreenState();
-  }
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
@@ -41,32 +39,18 @@ class _HomeScreenState extends State<HomeScreen> {
     if (_selectedIndex == 0) {
       _noteKey.currentState?.addNoteFromExternal();
     } else if (_selectedIndex == 1) {
-      _taskKey.currentState?.addTask();
+      _taskKey.currentState?.addTask(); // Artık çalışır
     }
   }
-  // void _onAddPressed() {
-  //   if (_selectedIndex == 0) {
-  //     _noteKey.currentState?.addNoteFromExternal();
-  //   } else if (_selectedIndex == 1) {
-  //     // Incorrect: _taskKey.currentState?.addTask();
-  //     // Correct: Call the method that opens the add task dialog.
-  //     _taskKey.currentState?.showAddTaskDialog();
-  //   }
-  // }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(
-      //   title: const Text('Notepad'),
-      //   centerTitle: true,
-      //   backgroundColor: Colors.blue,
-      // ),
       body: _pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
-        selectedItemColor: Color.fromARGB(255, 194, 163, 222),
+        selectedItemColor: const Color.fromARGB(255, 194, 163, 222),
         unselectedItemColor: const Color.fromARGB(255, 106, 104, 104),
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.note), label: 'Notlar'),
@@ -84,13 +68,13 @@ class _HomeScreenState extends State<HomeScreen> {
           ? Padding(
               padding: const EdgeInsets.only(bottom: 0),
               child: SizedBox(
-                width: 55, //yükseklik
+                width: 55,
                 height: 75,
                 child: FloatingActionButton(
                   onPressed: _onAddPressed,
-                  backgroundColor: Color(0xFFC3A5DE),
+                  backgroundColor: const Color(0xFFC3A5DE),
                   elevation: 8,
-                  shape: const CircleBorder(), //yuvarlak şekil
+                  shape: const CircleBorder(),
                   child: const Icon(Icons.add, size: 30),
                 ),
               ),

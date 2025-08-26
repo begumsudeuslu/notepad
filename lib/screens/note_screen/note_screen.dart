@@ -57,6 +57,8 @@ class NoteScreenState extends State<NoteScreen> {
       _isLoading = true;
     });
     final notes = await NotePadDatabase.instance.readAllNotes();
+
+    if (!mounted) return;
     setState(() {
       _notes = notes; // db'den al
       _sortNotes();
