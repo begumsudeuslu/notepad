@@ -565,7 +565,7 @@ class _AccountScreenState extends State<AccountScreen> {
               label: const Text("Giriş Yap/ Kayıt Ol"),
 
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
+                backgroundColor: const Color.fromARGB(255, 170, 76, 201),
                 foregroundColor: Colors.white,
                 minimumSize: const Size(double.infinity, 45),
                 textStyle: const TextStyle(fontSize: 14),
