@@ -1,164 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:notepad/databases/database.dart';
-import '../models/note.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
+import '../../models/note.dart';
 import '../widgets/note_widgets/note_card.dart';
 import '../widgets/note_widgets/search_bar.dart';
 import '../widgets/note_widgets/note_editing_page.dart';
-
-class NoteScreen extends StatefulWidget {
-  final VoidCallback? onAddNote;
-  const NoteScreen({super.key, this.onAddNote});
-
-  @override
-  NoteScreenState createState() {
-    return NoteScreenState();
-  }
-}
+import '../../controllers/note_controller.dart';
 
 enum SortOption { latest, oldest, alphabetical }
 
 enum ViewOption { list, grid }
 
-class NoteScreenState extends State<NoteScreen> {
-  List<Note> _notes = [];
-  List<Note> _foundNotes = [];
-
-  bool _isLoading = false;
-  bool _isSearching = false;
-
-  //int? _editingNoteId;
-
-  final TextEditingController _editingTitleController = TextEditingController();
-  final TextEditingController _editingContentController =
-      TextEditingController();
-  final TextEditingController _searchController = TextEditingController();
-
-  SortOption _currentSortOption = SortOption.latest;
-  ViewOption _currentViewOption = ViewOption.list;
-
-  @override
-  void initState() {
-    super.initState();
-    _refreshNotes();
-    _searchController.addListener(_filterNotes);
-  }
-
-  @override
-  void dispose() {
-    _editingTitleController.dispose();
-    _editingContentController.dispose();
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _refreshNotes() async {
-    setState(() {
-      _isLoading = true;
-    });
-    final notes = await NotePadDatabase.instance.readAllNotes();
-
-    if (!mounted) return;
-    setState(() {
-      _notes = notes; // db'den al
-      _sortNotes();
-      _foundNotes = List<Note>.from(_notes); //kopya
-      _isLoading = false;
-    });
-  }
-
-  void _sortNotes() {
-    switch (_currentSortOption) {
-      case SortOption.latest:
-        _notes.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-        break;
-      case SortOption.oldest:
-        _notes.sort((a, b) => a.createdAt.compareTo(b.createdAt));
-        break;
-      case SortOption.alphabetical:
-        _notes.sort(
-          (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
-        );
-        break;
-    }
-    //sıralanan listeyi foundNotes'a yansıtılmalı
-    _filterNotes();
-  }
-
-  void _filterNotes() {
-    final query = _searchController.text.toLowerCase();
-    setState(() {
-      if (query.isEmpty) {
-        _foundNotes = List<Note>.from(_notes); // <-- kopya
-      } else {
-        _foundNotes = _notes
-            .where(
-              (note) =>
-                  note.title.toLowerCase().contains(query) ||
-                  note.content.toLowerCase().contains(query),
-            )
-            .toList(); //zaten kopya
-      }
-    });
-  }
-
-  void addNoteFromExternal() async {
-    final newNote = Note(
-      title: 'Yeni Not ${_notes.length + 1}',
-      content: 'Bu notun içeriği..',
-      createdAt: DateTime.now(),
-    );
-    await NotePadDatabase.instance.create(newNote);
-    _refreshNotes();
-  }
-
-  void _editNote(BuildContext context, Note note) async {
-    final updatedNote = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => NoteEditingPage(note: note)),
-    );
-
-    if (updatedNote != null && updatedNote is Note) {
-      await NotePadDatabase.instance.update(updatedNote);
-      _refreshNotes();
-    }
-  }
-
-  void _deleteNote(int id) async {
-    final deletedNote = _notes.firstWhere((n) => n.id == id);
-
-    setState(() {
-      _notes.removeWhere((n) => n.id == id);
-    });
-
-    bool isUndo = false;
-
-    final snackBar = SnackBar(
-      content: Text('${deletedNote.title} adlı not silindi.'),
-      action: SnackBarAction(
-        label: 'Geri Al',
-        onPressed: () {
-          isUndo = true;
-          setState(() {
-            _notes.insert(0, deletedNote);
-          });
-        },
-      ),
-    );
-
-    ScaffoldMessenger.of(context).showSnackBar(snackBar).closed.then((_) async {
-      if (!isUndo) {
-        await NotePadDatabase.instance.delete(id);
-      }
-    });
-    _filterNotes();
-  }
+class NoteScreen extends StatelessWidget {
+  const NoteScreen({super.key});
 
   void _showNoteDetail(BuildContext context, Note note) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          backgroundColor: Colors.white,
           title: Text(note.title),
           content: SingleChildScrollView(child: Text(note.content)),
           actions: [
@@ -172,181 +33,238 @@ class NoteScreenState extends State<NoteScreen> {
     );
   }
 
-  Widget _buildEmptyNotesMessage() {
-    return const Center(
-      child: Text(
-        'Henüz not yok. ➕ simgesine tıklayarak not ekleyebilirsin.',
-        style: TextStyle(fontSize: 18, color: Colors.grey),
-        textAlign: TextAlign.center,
-      ),
+  Future<void> _editNote(BuildContext context, Note note) async {
+    final controller = Provider.of<NoteController>(context, listen: false);
+    final updatedNote = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => NoteEditingPage(note: note)),
     );
-  }
 
-  Widget _buildNotesList() {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    final listToShow = _isSearching ? _foundNotes : _notes;
-
-    if (listToShow.isEmpty) {
-      return _buildEmptyNotesMessage();
-    }
-
-    if (_currentViewOption == ViewOption.list) {
-      return SlidableAutoCloseBehavior(
-        child: ListView.builder(
-          padding: const EdgeInsets.all(12),
-          itemCount: listToShow.length,
-          itemBuilder: (context, index) {
-            final note = listToShow[index];
-
-            return NoteCard(
-              note: note,
-              onDelete: () {
-                if (note.id != null) {
-                  _deleteNote(note.id!);
-                }
-              },
-              onTap: () => _showNoteDetail(context, note),
-              onEdit: () => _editNote(context, note),
-              isGridView: false,
-            );
-          },
-        ),
-      );
-    } else {
-      return SlidableAutoCloseBehavior(
-        child: GridView.builder(
-          padding: const EdgeInsets.all(12),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2, //her satırda 2 note
-            childAspectRatio: 1.0, //genişlik/yükseklik oranı
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 5,
-          ),
-          itemCount: listToShow.length,
-          itemBuilder: (context, index) {
-            final note = listToShow[index];
-
-            return NoteCard(
-              note: note,
-              onDelete: () {
-                if (note.id != null) {
-                  _deleteNote(note.id!);
-                }
-              },
-              onTap: () => _showNoteDetail(context, note),
-              onEdit: () => _editNote(context, note),
-              isGridView: true,
-            );
-          },
-        ),
-      );
+    if (updatedNote != null && updatedNote is Note) {
+      await controller.updateNote(updatedNote);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 50.0,
-            floating: true,
-            pinned: true,
-            elevation: 0,
-            backgroundColor: const Color.fromARGB(255, 166, 128, 199),
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
-            ),
-            centerTitle: true,
-            title: const Text(
-              'Not Listesi',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-              ),
-            ),
-            actions: [
-              PopupMenuButton<SortOption>(
-                icon: const Icon(Icons.sort, color: Colors.white),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15.0),
+      body: Consumer<NoteController>(
+        builder: (context, noteController, child) {
+          return CustomScrollView(
+            slivers: [
+              _buildAppBar(context, noteController),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                    child: SearchBarWidget(
+                      controller: noteController.searchController,
+                      onChanged: (value) {
+                        noteController.searchController.text = value;
+                      },
+                      onClear: () {
+                        noteController.searchController.clear();
+                      },
+                    ),
+                  ),
                 ),
-                onSelected: (SortOption result) {
-                  setState(() {
-                    _currentSortOption = result;
-                    _sortNotes();
-                  });
-                },
-                itemBuilder: (BuildContext context) =>
-                    <PopupMenuEntry<SortOption>>[
-                      const PopupMenuItem<SortOption>(
-                        value: SortOption.latest,
-                        child: Text('En Yeni'),
-                      ),
-                      const PopupMenuItem<SortOption>(
-                        value: SortOption.oldest,
-                        child: Text('En Eski'),
-                      ),
-                      const PopupMenuItem<SortOption>(
-                        value: SortOption.alphabetical,
-                        child: Text('Alfabetik'),
-                      ),
-                    ],
               ),
-              IconButton(
-                onPressed: () {
-                  setState(() {
-                    _currentViewOption = _currentViewOption == ViewOption.list
-                        ? ViewOption.grid
-                        : ViewOption.list;
-                  });
-                },
-                icon: Icon(
-                  _currentViewOption == ViewOption.list
-                      ? Icons.grid_view
-                      : Icons.list,
-                  color: Colors.white,
+              SliverToBoxAdapter(
+                child: SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.75,
+                  child: _buildNotesList(context, noteController),
                 ),
               ),
             ],
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
-                  borderRadius: BorderRadius.circular(25),
-                ),
-                child: SearchBarWidget(
-                  controller: _searchController,
-                  onChanged: (value) {
-                    setState(() {
-                      _filterNotes();
-                    });
-                  },
-                  onClear: () {
-                    _searchController.clear();
-                    setState(() {
-                      _filterNotes();
-                    });
-                  },
-                ),
-              ),
-            ),
-          ),
+          );
+        },
+      ),
+    );
+  }
 
-          SliverToBoxAdapter(
-            child: SizedBox(
-              height: MediaQuery.of(context).size.height * 0.75,
-              child: _buildNotesList(),
-            ),
+  Widget _buildAppBar(BuildContext context, NoteController noteController) {
+    return SliverAppBar(
+      expandedHeight: 50.0,
+      floating: true,
+      pinned: true,
+      elevation: 0,
+      backgroundColor: const Color.fromARGB(255, 166, 128, 199),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+      ),
+      centerTitle: true,
+      title: const Text(
+        'Not Listesi',
+        style: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+          fontSize: 20,
+        ),
+      ),
+      actions: [
+        PopupMenuButton<SortOption>(
+          icon: const Icon(Icons.sort, color: Colors.white),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15.0),
           ),
-        ],
+          onSelected: (SortOption result) {
+            noteController.updateSortOption(result);
+          },
+          itemBuilder: (BuildContext context) => <PopupMenuEntry<SortOption>>[
+            const PopupMenuItem<SortOption>(
+              value: SortOption.latest,
+              child: Text('En Yeni'),
+            ),
+            const PopupMenuItem<SortOption>(
+              value: SortOption.oldest,
+              child: Text('En Eski'),
+            ),
+            const PopupMenuItem<SortOption>(
+              value: SortOption.alphabetical,
+              child: Text('Alfabetik'),
+            ),
+          ],
+        ),
+        IconButton(
+          onPressed: () {
+            noteController.toggleViewOption();
+          },
+          icon: Icon(
+            noteController.currentViewOption == ViewOption.list
+                ? Icons.grid_view
+                : Icons.list,
+            color: Colors.white,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNotesList(BuildContext context, NoteController noteController) {
+    if (noteController.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final listToShow = noteController.foundNotes;
+
+    if (listToShow.isEmpty) {
+      return _buildEmptyNotesMessage();
+    }
+
+    if (noteController.currentViewOption == ViewOption.list) {
+      return _buildListView(context, listToShow, noteController);
+    } else {
+      return _buildGridView(context, listToShow, noteController);
+    }
+  }
+
+  Widget _buildListView(
+    BuildContext context,
+    List<Note> notes,
+    NoteController noteController,
+  ) {
+    return ListView.builder(
+      padding: const EdgeInsets.all(12),
+      itemCount: notes.length,
+      itemBuilder: (context, index) {
+        final note = notes[index];
+        return NoteCard(
+          note: note,
+          onDelete: () async {
+            final confirmed = await showDialog<bool>(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  backgroundColor: Colors.white,
+                  title: const Text("Notu Sil"),
+                  content: const Text(
+                    "Bu notu silmek istediğinize emin misiniz?",
+                  ),
+                  actions: <Widget>[
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: const Text("Hayır"),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      child: const Text("Evet"),
+                    ),
+                  ],
+                );
+              },
+            );
+
+            if (confirmed == true && note.id != null) {
+              final deletedNote = noteController.foundNotes.firstWhere(
+                (n) => n.id == note.id,
+              );
+
+              noteController.deleteNote(note.id!);
+
+              final snackBar = SnackBar(
+                content: Text('${deletedNote.title} adlı not silindi.'),
+                action: SnackBarAction(
+                  label: 'Geri Al',
+                  onPressed: () {
+                    noteController.addNoteFromExternal(note: deletedNote);
+                  },
+                ),
+              );
+
+              ScaffoldMessenger.of(context).showSnackBar(snackBar).closed.then((
+                reason,
+              ) {
+                if (reason != SnackBarClosedReason.action) {
+                  noteController.permanentDelete(deletedNote.id!);
+                }
+              });
+            }
+          },
+          onTap: () => _showNoteDetail(context, note),
+          onEdit: () => _editNote(context, note),
+          isGridView: false,
+        );
+      },
+    );
+  }
+
+  Widget _buildGridView(
+    BuildContext context,
+    List<Note> notes,
+    NoteController noteController,
+  ) {
+    return GridView.builder(
+      padding: const EdgeInsets.all(12),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 1.0,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 5,
+      ),
+      itemCount: notes.length,
+      itemBuilder: (context, index) {
+        final note = notes[index];
+        return NoteCard(
+          note: note,
+          onDelete: () => noteController.deleteNote(note.id!),
+          onTap: () => _showNoteDetail(context, note),
+          onEdit: () => _editNote(context, note),
+          isGridView: true,
+        );
+      },
+    );
+  }
+
+  Widget _buildEmptyNotesMessage() {
+    return const Center(
+      child: Text(
+        'Henüz not yok. ➕ simgesine tıklayarak not ekleyebilirsin.',
+        style: TextStyle(fontSize: 18, color: Colors.grey),
+        textAlign: TextAlign.center,
       ),
     );
   }

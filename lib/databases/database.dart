@@ -87,7 +87,7 @@ class NotePadDatabase {
     return result.map((json) => Note.fromMap(json)).toList();
   }
 
-  Future<int> update(Note note) async {
+  Future<int> updateNote(Note note) async {
     final db = await instance.database;
     return db.update(
       'notes',

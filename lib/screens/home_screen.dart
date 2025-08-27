@@ -4,6 +4,8 @@ import 'tasks_screen.dart';
 import 'account_screen.dart';
 import 'package:notepad/widgets/task_widgets/add_task_screen.dart';
 import 'package:notepad/models/task.dart';
+import 'package:provider/provider.dart';
+import 'package:notepad/controllers/note_controller.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,20 +17,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
-  // Sayfaları GlobalKey olmadan yönetiriz
-  final GlobalKey<NoteScreenState> _noteKey = GlobalKey();
-
-  late final List<Widget> _pages;
-
-  @override
-  void initState() {
-    super.initState();
-    _pages = [
-      NoteScreen(key: _noteKey),
-      const TasksScreen(), // Artık key gerekmez
-      const AccountScreen(),
-    ];
-  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -38,7 +26,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _onAddPressed() {
     if (_selectedIndex == 0) {
-      _noteKey.currentState?.addNoteFromExternal();
+      final noteController = Provider.of<NoteController>(
+        context,
+        listen: false,
+      );
+      noteController.addNoteFromExternal();
     } else if (_selectedIndex == 1) {
       // Görev ekleme diyalogunu doğrudan burada çağırırız
       Navigator.push(
@@ -51,7 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _pages[_selectedIndex],
+      body:_buildPage(),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
@@ -87,5 +79,15 @@ class _HomeScreenState extends State<HomeScreen> {
           : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
+  }
+
+    Widget _buildPage() {
+    if (_selectedIndex == 0) {
+      return const NoteScreen();
+    } else if (_selectedIndex == 1) {
+      return const TasksScreen();
+    } else {
+      return const AccountScreen();
+    }
   }
 }

@@ -23,14 +23,12 @@ class NoteCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 3,
-      margin: const EdgeInsets.symmetric(
-        vertical: 6,
-      ), // distance between  notes
+      margin: const EdgeInsets.symmetric(vertical: 8),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Slidable(
         key: ValueKey(note.id),
         endActionPane: ActionPane(
-          motion: const ScrollMotion(),
+          motion: const DrawerMotion(),
           children: [
             SlidableAction(
               onPressed: (context) => onEdit(),
@@ -40,32 +38,7 @@ class NoteCard extends StatelessWidget {
               label: 'Düzenle',
             ),
             SlidableAction(
-              onPressed: (context) async {
-                final confirmed = await showDialog<bool>(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: const Text("Notu Sil"),
-                      content: const Text(
-                        "Bu notu silmek istediğinize emin misiniz?",
-                      ),
-                      actions: <Widget>[
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(false),
-                          child: const Text("Hayır"),
-                        ),
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(true),
-                          child: const Text("Evet"),
-                        ),
-                      ],
-                    );
-                  },
-                );
-                if (confirmed == true) {
-                  onDelete();
-                }
-              },
+              onPressed: (context) => onDelete(),
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
               icon: Icons.delete,
@@ -83,7 +56,7 @@ class NoteCard extends StatelessWidget {
                   const RoundedRectangleBorder(
                     borderRadius: BorderRadius.all(Radius.circular(12.0)),
                   ),
-              color: Theme.of(context).cardColor,
+              color: Colors.white,
             ),
             child: isGridView
                 ? _buildGridViewContent()
@@ -132,9 +105,7 @@ class NoteCard extends StatelessWidget {
 
   Widget _buildGridViewContent() {
     return Container(
-      padding: const EdgeInsets.all(
-        12.0,
-      ), // padding is inside the container, margin is arround the container
+      padding: const EdgeInsets.all(12.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
