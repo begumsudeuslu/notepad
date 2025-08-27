@@ -1,5 +1,7 @@
+// task_list_section.dart
 import 'package:flutter/material.dart';
 import 'package:notepad/screens/task/controllers/task_controller.dart';
+import 'package:notepad/screens/task/widgets/add_task_screen.dart';
 import 'task_list_view.dart';
 import 'task_dialogs.dart';
 
@@ -13,16 +15,19 @@ class TaskListSection extends StatelessWidget {
     final filtered = controller.filteredTasks;
 
     if (filtered.isEmpty) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(24),
-          child: Text(
-            'Hiç sonuç yok.\nYeni görev eklemek için + simgesine tıkla.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey,
-              fontStyle: FontStyle.italic,
+      return const SliverFillRemaining(
+        hasScrollBody: false,
+        child: Center(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Text(
+              'Hiç sonuç yok.\nYeni görev eklemek için + simgesine tıkla.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey,
+                fontStyle: FontStyle.italic,
+              ),
             ),
           ),
         ),
@@ -31,15 +36,22 @@ class TaskListSection extends StatelessWidget {
 
     return TaskListView(
       filteredTasks: filtered,
-      onToggleTask: (index) => controller.toggleTask(index),
-      onEditTask: (index) {
+      // Düzeltildi: index ile Task nesnesine eriş ve controller'a gönder
+      onToggleTask: (index) => controller.toggleTask(filtered[index]),
+      onEditTask: (index) async {
         final task = controller.filteredTasks[index];
-        showEditTaskDialog(context, task, () async {
-          final updated = task.copy(title: task.title); // örnek
-          controller.editTask(index, updated);
-        });
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => AddTaskScreen(taskToEdit: task),
+          ),
+        );
+        if (result == true) {
+          controller.refreshAllTasks();
+        }
       },
-      onDeleteTask: (index) => controller.deleteTask(index),
+      // Düzeltildi: index ile Task nesnesinin id'sine eriş ve controller'a gönder
+      onDeleteTask: (index) => controller.deleteTask(filtered[index].id!),
     );
   }
 }

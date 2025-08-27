@@ -1,88 +1,82 @@
+// calendar_and_controls.dart
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:notepad/models/task.dart';
-import 'package:notepad/databases/database.dart';
+import 'package:notepad/screens/task/controllers/task_controller.dart';
 
 class CalendarAndControls extends StatelessWidget {
-  final TextEditingController searchController;
-  final String searchQuery;
-  final DateTime selectedDate;
-  final bool isDateSelected;
-  final List<Task> allTasks;
-  final bool showCompleted;
-  final String sortBy;
-  final ValueChanged<String> onSearchChanged;
-  final ValueChanged<DateTime> onDaySelected;
-  final ValueChanged<bool> onShowCompletedChanged;
-  final ValueChanged<String?> onSortByChanged;
-
-  const CalendarAndControls({
-    super.key,
-    required this.searchController,
-    required this.searchQuery,
-    required this.selectedDate,
-    required this.isDateSelected,
-    required this.allTasks,
-    required this.showCompleted,
-    required this.sortBy,
-    required this.onSearchChanged,
-    required this.onDaySelected,
-    required this.onShowCompletedChanged,
-    required this.onSortByChanged,
-  });
+  const CalendarAndControls({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final controller = Provider.of<TaskController>(context);
+
     return Container(
-      color: Colors.transparent,
-      padding: const EdgeInsets.only(left: 16, right: 16, top: 20),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Column(
         children: [
           TextField(
-            controller: searchController,
+            controller: controller.searchController,
             decoration: InputDecoration(
-              hintText: 'Ara...',
+              hintText: "Görevlerde ara",
               prefixIcon: const Icon(Icons.search),
+              suffixIcon: controller.searchQuery.isNotEmpty
+                  ? IconButton(
+                      onPressed: controller.clearSearch,
+                      icon: const Icon(Icons.clear),
+                    )
+                  : null,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(25),
                 borderSide: BorderSide.none,
               ),
               filled: true,
-              fillColor: Colors.grey.shade200,
+              fillColor: Colors.grey[100],
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 16,
+              ),
             ),
-            onChanged: onSearchChanged,
+            onChanged: controller.setSearchQuery,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
           Container(
-            padding: const EdgeInsets.all(8),
+            margin: const EdgeInsets.symmetric(horizontal: 16.0),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(15),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.2),
-                  spreadRadius: 1,
-                  blurRadius: 5,
-                  offset: const Offset(0, 3),
-                ),
-              ],
+              borderRadius: BorderRadius.circular(12.0),
+              border: Border.all(color: Colors.grey.shade300, width: 1.0),
             ),
             child: TableCalendar(
               firstDay: DateTime.utc(2020, 1, 1),
               lastDay: DateTime.utc(2030, 12, 31),
-              focusedDay: selectedDate,
+              focusedDay: controller.selectedDate,
               selectedDayPredicate: (day) =>
-                  isDateSelected && isSameDay(selectedDate, day),
-              onDaySelected: (sDay, fDay) => onDaySelected(sDay),
-              eventLoader: (day) {
-                final hasTasks = allTasks.any(
-                  (task) => isSameDay(task.date, day),
-                );
-                return hasTasks ? [true] : [];
+                  isSameDay(controller.selectedDate, day) &&
+                  controller.isDateSelected,
+              onDaySelected: (selectedDay, focusedDay) {
+                if (controller.isDateSelected &&
+                    isSameDay(selectedDay, controller.selectedDate)) {
+                  controller.clearSelectedDate();
+                } else {
+                  controller.setSelectedDate(selectedDay);
+                }
               },
+              eventLoader: (day) =>
+                  controller.getTasksForDay(day).isNotEmpty ? [true] : [],
               calendarStyle: CalendarStyle(
                 selectedDecoration: BoxDecoration(
-                  color: Colors.green,
+                  color: Color.fromARGB(255, 166, 128, 199),
                   shape: BoxShape.circle,
                 ),
                 weekendTextStyle: const TextStyle(color: Colors.blueGrey),
@@ -110,15 +104,15 @@ class CalendarAndControls extends StatelessWidget {
                 child: Row(
                   children: [
                     Switch(
-                      value: showCompleted,
-                      onChanged: onShowCompletedChanged,
+                      value: controller.showCompleted,
+                      onChanged: controller.toggleShowCompleted,
                     ),
                     const Text('Tamamlananları göster'),
                   ],
                 ),
               ),
               DropdownButton<String>(
-                value: sortBy,
+                value: controller.sortBy,
                 items: const [
                   DropdownMenuItem(
                     value: 'created',
@@ -129,7 +123,11 @@ class CalendarAndControls extends StatelessWidget {
                     child: Text('Alfabetik'),
                   ),
                 ],
-                onChanged: onSortByChanged,
+                onChanged: (v) {
+                  if (v != null) {
+                    controller.setSortBy(v);
+                  }
+                },
               ),
             ],
           ),

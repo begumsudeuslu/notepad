@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'note_screen/note_screen.dart';
 import 'task/screens/tasks_screen.dart';
 import 'account_screen.dart';
+import 'package:notepad/screens/task/widgets/add_task_screen.dart';
+import 'package:notepad/models/task.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -13,9 +15,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
-  // Sayfaları GlobalKey ile kontrol ederiz
+  // Sayfaları GlobalKey olmadan yönetiriz
   final GlobalKey<NoteScreenState> _noteKey = GlobalKey();
-  final GlobalKey<TasksScreenState> _taskKey = GlobalKey();
 
   late final List<Widget> _pages;
 
@@ -24,7 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _pages = [
       NoteScreen(key: _noteKey),
-      TasksScreen(key: _taskKey),
+      const TasksScreen(), // Artık key gerekmez
       const AccountScreen(),
     ];
   }
@@ -39,7 +40,11 @@ class _HomeScreenState extends State<HomeScreen> {
     if (_selectedIndex == 0) {
       _noteKey.currentState?.addNoteFromExternal();
     } else if (_selectedIndex == 1) {
-      _taskKey.currentState?.addTask(); // Artık çalışır
+      // Görev ekleme diyalogunu doğrudan burada çağırırız
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const AddTaskScreen()),
+      );
     }
   }
 
