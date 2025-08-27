@@ -1,4 +1,3 @@
-// calendar_and_controls.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -16,11 +15,7 @@ class CalendarAndControls extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
         ],
       ),
       child: Column(
@@ -60,13 +55,15 @@ class CalendarAndControls extends StatelessWidget {
             child: TableCalendar(
               firstDay: DateTime.utc(2020, 1, 1),
               lastDay: DateTime.utc(2030, 12, 31),
-              focusedDay: controller.selectedDate,
+              focusedDay:
+                  controller.selectedDate ??
+                  DateTime.now(), // Nullable kontrolü eklendi
               selectedDayPredicate: (day) =>
-                  isSameDay(controller.selectedDate, day) &&
-                  controller.isDateSelected,
+                  controller.selectedDate != null &&
+                  isSameDay(controller.selectedDate!, day),
               onDaySelected: (selectedDay, focusedDay) {
-                if (controller.isDateSelected &&
-                    isSameDay(selectedDay, controller.selectedDate)) {
+                if (controller.selectedDate != null &&
+                    isSameDay(selectedDay, controller.selectedDate!)) {
                   controller.clearSelectedDate();
                 } else {
                   controller.setSelectedDate(selectedDay);

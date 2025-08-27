@@ -9,7 +9,6 @@ class TaskController extends ChangeNotifier {
   String _searchQuery = '';
   bool _showCompleted = true;
   DateTime _selectedDate = DateTime.now();
-  bool _isDateSelected = false;
   String _sortBy = 'created';
 
   // Controller'a dışarıdan erişim için getter'lar
@@ -17,7 +16,6 @@ class TaskController extends ChangeNotifier {
   String get searchQuery => _searchQuery;
   bool get showCompleted => _showCompleted;
   DateTime get selectedDate => _selectedDate;
-  bool get isDateSelected => _isDateSelected;
   String get sortBy => _sortBy;
 
   // Arama çubuğu için controller
@@ -61,27 +59,6 @@ class TaskController extends ChangeNotifier {
 
   // Arama, filtre ve takvim mantığını tek bir metotta toplar
   void _refreshFilteredTasks() {
-    List<Task> filtered = _allTasks.where((task) {
-      final isSameDayCondition =
-          !_isDateSelected || isSameDay(task.date, _selectedDate);
-      final matchesSearchQuery =
-          _searchQuery.isEmpty ||
-          task.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          (task.description ?? '').toLowerCase().contains(
-            _searchQuery.toLowerCase(),
-          );
-      final showCompletedCondition = _showCompleted || !task.isDone;
-      return isSameDayCondition && matchesSearchQuery && showCompletedCondition;
-    }).toList();
-
-    filtered.sort((a, b) {
-      if (_sortBy == 'alphabetical') {
-        return a.title.toLowerCase().compareTo(b.title.toLowerCase());
-      } else {
-        return b.createdAt.compareTo(a.createdAt);
-      }
-    });
-
     notifyListeners();
   }
 
@@ -106,13 +83,12 @@ class TaskController extends ChangeNotifier {
   // Takvimden seçilen tarihi ayarlar
   void setSelectedDate(DateTime date) {
     _selectedDate = date;
-    _isDateSelected = true;
     _refreshFilteredTasks();
   }
 
   // Seçili tarihi temizler
   void clearSelectedDate() {
-    _isDateSelected = false;
+    _selectedDate = DateTime.now();
     _refreshFilteredTasks();
   }
 
@@ -126,8 +102,7 @@ class TaskController extends ChangeNotifier {
   // Arama ve filtre uygulanmış görevleri döndüren getter
   List<Task> get filteredTasks {
     List<Task> filtered = _allTasks.where((task) {
-      final isSameDayCondition =
-          !_isDateSelected || isSameDay(task.date, _selectedDate);
+      final isSameDayCondition = isSameDay(task.date, _selectedDate);
       final matchesSearchQuery =
           _searchQuery.isEmpty ||
           task.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
