@@ -3,7 +3,6 @@ import 'note_screen.dart';
 import 'tasks_screen.dart';
 import 'account_screen.dart';
 import 'package:notepad/widgets/task_widgets/add_task_screen.dart';
-import 'package:notepad/models/task.dart';
 import 'package:provider/provider.dart';
 import 'package:notepad/controllers/note_controller.dart';
 

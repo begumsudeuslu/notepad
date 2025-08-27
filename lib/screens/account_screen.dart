@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:notepad/databases/database.dart';
 import 'package:notepad/screens/note_screen.dart';
 import 'package:notepad/screens/tasks_screen.dart';
-import 'manage_signin_signup/login_screen.dart';
+import '../widgets/account_widgets/login_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AccountScreen extends StatefulWidget {
@@ -320,11 +319,6 @@ class _AccountScreenState extends State<AccountScreen> {
       MaterialPageRoute(builder: (context) => const LoginScreen()),
     );
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Giriş yapıldı/Kayıt olundu (ama simülasyonda)"),
-      ),
-    );
   }
 
   /// çıkış yapıldığında kullanılacak fonksiyon

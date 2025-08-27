@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:notepad/controllers/auth_controller.dart';
+import 'package:provider/provider.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -12,34 +14,40 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false;
 
   // simüle eden function
-  void _handleRegister() {
-    final String username = _usernameController.text;
-    final String email = _emailController.text;
-    final String password = _passwordController.text;
+  void _handleRegister() async {
+    setState(() {
+      _isLoading = true;
+    });
 
-    // boşsa olmaz, basit kontrol
-    if (username.isEmpty || email.isEmpty || password.isEmpty) {
+    try {
+      await Provider.of<AuthController>(context, listen: false).register(
+        _usernameController.text,
+        _emailController.text,
+        _passwordController.text,
+      );
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Lütfen tüm alanları doldurun."),
+          content: Text("Kayıt işlemi başarılı (simülasyon)"),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
           backgroundColor: Colors.redAccent,
         ),
       );
-      return;
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
 
-    // Şimdilik başarılı bir kayıt mesajı gösterildi
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Kayıt işlemi başarılı (simülasyon)"),
-        backgroundColor: Colors.green,
-      ),
-    );
-
-    // Kayıt başarılı olduktan sonra LoginScreen'e geri dönelim.
-    // Kullanıcı artık giriş yapabilir.
     Navigator.pop(context);
   }
 
@@ -88,6 +96,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 color: Color(0xFFC3A5DE),
               ),
             ),
+
             const SizedBox(height: 20),
 
             // Kullanıcı Adı Girişi
@@ -112,6 +121,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ),
             ),
+
             const SizedBox(height: 15),
 
             // E-posta Girişi
@@ -137,6 +147,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               keyboardType: TextInputType.emailAddress,
             ),
+
             const SizedBox(height: 15),
 
             // Şifre Girişi
@@ -161,11 +172,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               obscureText: true,
             ),
+
             const SizedBox(height: 20),
 
             // Kayıt Ol Butonu
             ElevatedButton(
-              onPressed: _handleRegister,
+              onPressed: _isLoading ? null : _handleRegister,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color.fromARGB(255, 173, 134, 207),
                 foregroundColor: Colors.white,
@@ -175,7 +187,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 textStyle: const TextStyle(fontSize: 18),
               ),
-              child: const Text('Kayıt Ol'),
+              child: _isLoading
+                  ? const CircularProgressIndicator(color: Colors.white)
+                  : const Text('Kayıt Ol'),
             ),
           ],
         ),
