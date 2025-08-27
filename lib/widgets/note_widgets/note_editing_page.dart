@@ -50,6 +50,7 @@ class _NoteEditingPageState extends State<NoteEditingPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 166, 128, 199),
+        foregroundColor: Colors.white,
         title: const Text(
           'Notu Düzenle',
           style: TextStyle(color: Colors.white),
@@ -71,6 +72,7 @@ class _NoteEditingPageState extends State<NoteEditingPage> {
               decoration: const InputDecoration(
                 hintText: 'Başlık',
                 border: InputBorder.none,
+                focusedBorder: InputBorder.none,
               ),
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),

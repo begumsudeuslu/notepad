@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:notepad/screens/task/controllers/task_controller.dart';
+import 'package:notepad/controllers/task_controller.dart';
 
 class SearchAndFilters extends StatelessWidget {
   final TaskController controller;
