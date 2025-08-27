@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'note_screen/note_screen.dart';
-import 'task/screens/tasks_screen.dart';
+import 'note_screen.dart';
+import 'tasks_screen.dart';
 import 'account_screen.dart';
-import 'package:notepad/screens/task/widgets/add_task_screen.dart';
+import 'package:notepad/widgets/task_widgets/add_task_screen.dart';
 import 'package:notepad/models/task.dart';
 
 class HomeScreen extends StatefulWidget {

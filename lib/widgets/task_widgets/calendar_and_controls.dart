@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:notepad/screens/task/controllers/task_controller.dart';
+import 'package:notepad/controllers/task_controller.dart';
 
 class CalendarAndControls extends StatelessWidget {
   const CalendarAndControls({super.key});

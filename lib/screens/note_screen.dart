@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:notepad/databases/database.dart';
-import '../../models/note.dart';
+import '../models/note.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'note_card.dart';
-import 'search_bar.dart';
-import 'note_editing_page.dart';
+import '../widgets/note_widgets/note_card.dart';
+import '../widgets/note_widgets/search_bar.dart';
+import '../widgets/note_widgets/note_editing_page.dart';
 
 class NoteScreen extends StatefulWidget {
   final VoidCallback? onAddNote;

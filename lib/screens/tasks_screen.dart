@@ -1,9 +1,9 @@
 // tasks_screen.dart
 import 'package:flutter/material.dart';
-import 'package:notepad/screens/task/controllers/task_controller.dart';
+import 'package:notepad/controllers/task_controller.dart';
 import 'package:provider/provider.dart';
-import 'package:notepad/screens/task/widgets/calendar_and_controls.dart';
-import 'package:notepad/screens/task/widgets/task_list_section.dart';
+import 'package:notepad/widgets/task_widgets/calendar_and_controls.dart';
+import 'package:notepad/widgets/task_widgets/task_list_section.dart';
 
 class TasksScreen extends StatelessWidget {
   const TasksScreen({super.key});

@@ -1,7 +1,7 @@
 // task_list_section.dart
 import 'package:flutter/material.dart';
-import 'package:notepad/screens/task/controllers/task_controller.dart';
-import 'package:notepad/screens/task/widgets/add_task_screen.dart';
+import 'package:notepad/controllers/task_controller.dart';
+import 'package:notepad/widgets/task_widgets/add_task_screen.dart';
 import 'task_list_view.dart';
 import 'task_dialogs.dart';
 
