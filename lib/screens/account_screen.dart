@@ -225,20 +225,24 @@ class _AccountScreenState extends State<AccountScreen> {
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text("İptal"),
               onPressed: () {
                 Navigator.of(context).pop();
               },
+              style: TextButton.styleFrom(
+                foregroundColor: const Color.fromARGB(255, 166, 128, 199),
+              ),
+              child: const Text("İptal"),
             ),
             ElevatedButton(
-              child: const Text("Kaydet"),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color.fromARGB(255, 166, 128, 199),
+              ),
               onPressed: () async {
                 if (formKey.currentState!.validate()) {
                   // şifreyi başarıyla değiştirdiği simülasyon
 
                   try {
                     await auth.changePassword(
-                      auth.email,
                       oldPasswordController.text,
                       newPasswordController.text,
                     );
@@ -259,6 +263,7 @@ class _AccountScreenState extends State<AccountScreen> {
                   }
                 }
               },
+              child: const Text("Kaydet"),
             ),
           ],
         );

@@ -5,7 +5,7 @@ class AuthController extends ChangeNotifier {
   bool _isLoggedIn = false;
   String _username = "Misafir Kullanıcı";
   String _email = "misafir@example.com";
-  String _password = "123";
+  String _password = "123456";
 
   bool get isLoggedIn => _isLoggedIn;
   String get username => _username;
@@ -19,7 +19,7 @@ class AuthController extends ChangeNotifier {
       throw Exception("Lütfen tüm alanları doldurun.");
     }
 
-    if (email == 'f' && password == '1') {
+    if (email == 'flutterserver@example.com' && password == '123456') {
       _isLoggedIn = true;
       _username = "Flutter Server";
       _email = email;
@@ -59,8 +59,7 @@ class AuthController extends ChangeNotifier {
     }
   }
 
-  Future<void> changePassword(
-    String email, String oldPassword, String newPassword) async {
+  Future<void> changePassword(String oldPassword, String newPassword) async {
     await Future.delayed(const Duration(seconds: 1));
 
     if (oldPassword != _password) {
