@@ -5,6 +5,7 @@ class AuthController extends ChangeNotifier {
   bool _isLoggedIn = false;
   String _username = "Misafir Kullanıcı";
   String _email = "misafir@example.com";
+  String _password = "123";
 
   bool get isLoggedIn => _isLoggedIn;
   String get username => _username;
@@ -43,10 +44,34 @@ class AuthController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void updateUsername(String newUsername) {
+    if (newUsername.isEmpty) {
+      throw Exception("Kullanıcı adı boş olamaz.");
+    }
+    _username = newUsername;
+    notifyListeners();
+  }
+
   Future<void> resetPassword(String email) async {
     await Future.delayed(const Duration(seconds: 1));
     if (email.isEmpty) {
       throw Exception("Lütfen e-posta adresinizi girin.");
     }
+  }
+
+  Future<void> changePassword(
+    String email, String oldPassword, String newPassword) async {
+    await Future.delayed(const Duration(seconds: 1));
+
+    if (oldPassword != _password) {
+      throw Exception("Mevcut şifreniz yanlış.");
+    }
+
+    if (newPassword.length < 6) {
+      throw Exception("Şifre en az 6 karakter olmalı.");
+    }
+
+    _password = newPassword;
+    notifyListeners();
   }
 }
