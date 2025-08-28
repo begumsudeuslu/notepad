@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:notepad/databases/database.dart';
 import '../../models/note.dart';
 import '../widgets/note_widgets/note_card.dart';
 import '../widgets/note_widgets/search_bar.dart';

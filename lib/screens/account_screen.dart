@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:notepad/databases/database.dart';
-import 'package:notepad/screens/note_screen.dart';
-import 'package:notepad/screens/tasks_screen.dart';
-import 'manage_signin_signup/login_screen.dart';
+import 'package:notepad/widgets/account_widgets/account_info_section.dart';
+import 'package:notepad/widgets/account_widgets/stats_section.dart';
+import 'package:provider/provider.dart';
+import '../screens/note_screen.dart';
+import '../screens/tasks_screen.dart';
+import 'manage_account/login_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../controllers/account_controller.dart';
+import '../controllers/auth_controller.dart';
+import '../widgets/account_widgets/profile_header.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -65,10 +70,9 @@ class _AccountScreenState extends State<AccountScreen> {
   }
 
   // hesap bilgilerin güncellemek için
-  void _updateAccountInfo() {
+  void _updateAccountInfo(BuildContext context, AuthController auth) {
     // print("Hesap bilgileri güncelleniyor..");
-    String newUsername =
-        _username; // Yeni kullanıcı adını tutacak geçici değişken
+    String newUsername = auth.username;
 
     showDialog(
       context: context,
@@ -81,13 +85,13 @@ class _AccountScreenState extends State<AccountScreen> {
                 // Mevcut e-posta adresi (düzenlenemez)
                 ListTile(
                   title: const Text("E-posta Adresi"),
-                  subtitle: Text(_email),
+                  subtitle: Text(auth.email),
                   leading: const Icon(Icons.email),
                 ),
                 const SizedBox(height: 20),
                 // Kullanıcı adı için düzenlenebilir alan
                 TextFormField(
-                  initialValue: _username,
+                  initialValue: auth.username,
                   decoration: const InputDecoration(
                     labelText: "Yeni Kullanıcı Adı",
                     border: OutlineInputBorder(),
@@ -110,17 +114,13 @@ class _AccountScreenState extends State<AccountScreen> {
             ElevatedButton(
               child: const Text("Kaydet"),
               onPressed: () {
-                setState(() {
-                  _username = newUsername.isNotEmpty
-                      ? newUsername
-                      : _username; // Boş değilse güncelle
-                });
-                Navigator.of(context).pop(); // Diyalogu kapat
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text("Kullanıcı adı başarıyla güncellendi!"),
-                  ),
-                );
+                if (newUsername.isNotEmpty && newUsername != auth.username) {
+                  auth.updateUsername(newUsername);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Kullanıcı adı güncellendi!")),
+                  );
+                }
+                Navigator.of(context).pop();
               },
             ),
           ],
@@ -130,16 +130,13 @@ class _AccountScreenState extends State<AccountScreen> {
   }
 
   // şifre değiştirme
-  void _changePassword() {
-    // print("şifre değişiriliyor..")
-    final _formKey = GlobalKey<FormState>();
+  void _changePassword(BuildContext context, AuthController auth) {
+    final formKey = GlobalKey<FormState>();
+    final oldPasswordController = TextEditingController();
+    final newPasswordController = TextEditingController();
+    final confirmPasswordController = TextEditingController();
 
-    // databaseden gelenlerle gidenler..
-    String oldPassword = '';
-    String newPassword = '';
-    String confirmNewPassword = '';
-
-    // normalde databaseden gelmeli
+    //normalde database'den alınmalı
     const String correctOldPassword = "123";
 
     showDialog(
@@ -149,11 +146,12 @@ class _AccountScreenState extends State<AccountScreen> {
           title: const Text("Şifre Değiştir"),
           content: SingleChildScrollView(
             child: Form(
-              key: _formKey,
+              key: formKey,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   TextFormField(
+                    controller: oldPasswordController,
                     obscureText: true,
                     decoration: const InputDecoration(
                       labelText: "Mevcut Şifre",
@@ -164,7 +162,6 @@ class _AccountScreenState extends State<AccountScreen> {
                         horizontal: 16,
                       ),
                     ),
-                    onChanged: (value) => oldPassword = value,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return "Lütfen mevcut şifrenizi girin.";
@@ -178,6 +175,7 @@ class _AccountScreenState extends State<AccountScreen> {
                   ),
                   const SizedBox(height: 15),
                   TextFormField(
+                    controller: newPasswordController,
                     obscureText: true,
                     decoration: const InputDecoration(
                       labelText: "Yeni Şifre",
@@ -188,7 +186,6 @@ class _AccountScreenState extends State<AccountScreen> {
                         horizontal: 16,
                       ),
                     ),
-                    onChanged: (value) => newPassword = value,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return "Lütfen yeni şifrenizi girin.";
@@ -201,6 +198,7 @@ class _AccountScreenState extends State<AccountScreen> {
                   ),
                   const SizedBox(height: 10),
                   TextFormField(
+                    controller: confirmPasswordController,
                     obscureText: true,
                     decoration: const InputDecoration(
                       labelText: "Yeni Şifreyi Doğrula",
@@ -211,12 +209,11 @@ class _AccountScreenState extends State<AccountScreen> {
                         horizontal: 16,
                       ),
                     ),
-                    onChanged: (value) => confirmNewPassword = value,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return "Lütfen yeni şifrenizi tekrar girin.";
                       }
-                      if (value != newPassword) {
+                      if (value != newPasswordController.text) {
                         return "Şifreler uyuşmuyor.";
                       }
                       return null;
@@ -228,26 +225,45 @@ class _AccountScreenState extends State<AccountScreen> {
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text("İptal"),
               onPressed: () {
                 Navigator.of(context).pop();
               },
+              style: TextButton.styleFrom(
+                foregroundColor: const Color.fromARGB(255, 166, 128, 199),
+              ),
+              child: const Text("İptal"),
             ),
             ElevatedButton(
-              child: const Text("Kaydet"),
-              onPressed: () {
-                if (_formKey.currentState!.validate()) {
-                  // Şifreler başarıyla güncellendiğinde yapılacaklar.
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Şifreniz başarıyla değiştirildi!"),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                  // database güncellenmeli
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color.fromARGB(255, 166, 128, 199),
+              ),
+              onPressed: () async {
+                if (formKey.currentState!.validate()) {
+                  // şifreyi başarıyla değiştirdiği simülasyon
+
+                  try {
+                    await auth.changePassword(
+                      oldPasswordController.text,
+                      newPasswordController.text,
+                    );
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Şifreniz başarıyla değiştirildi!"),
+                        backgroundColor: Colors.green,
+                      ),
+                    ); // database güncellenmeli
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(e.toString()),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
                 }
               },
+              child: const Text("Kaydet"),
             ),
           ],
         );
@@ -256,8 +272,13 @@ class _AccountScreenState extends State<AccountScreen> {
   }
 
   // uygulama ayarlarını güncelle
-  void _openAppSettings() {
+  void _openAppSettings(BuildContext context, AccountController account) {
     // print("uygulama ayarlarını düzenle...")
+
+    final accountController = Provider.of<AccountController>(
+      context,
+      listen: false,
+    );
 
     showDialog(
       context: context,
@@ -274,27 +295,12 @@ class _AccountScreenState extends State<AccountScreen> {
                     "Bildirimleri Etkinleştir",
                     style: TextStyle(fontSize: 16),
                   ),
-                  StatefulBuilder(
-                    builder:
-                        (BuildContext context, StateSetter setStateInDialog) {
-                          return Switch(
-                            value: _enableNotifications,
-                            onChanged: (bool value) async {
-                              // Sadece diyalog içindeki state'i güncelle
-                              setStateInDialog(() {
-                                _enableNotifications = value;
-                              });
-
-                              // shared_preferences'a yeni değeri kaydet
-                              final prefs =
-                                  await SharedPreferences.getInstance();
-                              await prefs.setBool(
-                                'notifications_enabled',
-                                value,
-                              );
-                            },
-                          );
-                        },
+                  Switch(
+                    value: accountController.enableNotifications,
+                    onChanged: (bool value) async {
+                      await accountController.toggleNotifications(value);
+                      setState(() {});
+                    },
                   ),
                 ],
               ),
@@ -319,120 +325,12 @@ class _AccountScreenState extends State<AccountScreen> {
       context,
       MaterialPageRoute(builder: (context) => const LoginScreen()),
     );
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Giriş yapıldı/Kayıt olundu (ama simülasyonda)"),
-      ),
-    );
   }
 
-  /// çıkış yapıldığında kullanılacak fonksiyon
-  void _handleLogOut() {
-    // print("Çıkış yapılıyor");
-    setState(() {
-      _isLoggedIn = false;
-      _username = "Misafir Kullanıcı";
-      _email = "misafir@example.com";
-      // 👇 YENİ: Çıkış yapıldığında istatistikleri sıfırla.
-      _notesCount = 0;
-      _tasksCount = 0;
-      _completedTasksCount = 0;
-    });
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text("Hesaptan çıkış yapıldı!")));
-  }
-
-  Widget _buildProfileHeader() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-
-      decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 249, 230, 254),
-        borderRadius: BorderRadius.circular(10),
-      ),
-
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 30,
-            backgroundColor: const Color.fromARGB(255, 233, 192, 245),
-            child: Icon(
-              Icons.person,
-              size: 40,
-              color: const Color.fromARGB(255, 149, 21, 192),
-            ),
-            //daha sonrasında profil iconu yerine fotoğraf konulabilir
-          ),
-          const SizedBox(width: 15),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                _isLoggedIn ? "Merhaba, $_username!" : "Hoş Geldiniz!",
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ), // FontWeight bir enum değeri o yüzden const olur
-              ),
-
-              if (_isLoggedIn)
-                Text(
-                  _email,
-                  style: TextStyle(fontSize: 16, color: Colors.grey.shade700),
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAccountInfoSection() {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              "Hesap Bilgileri",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.start,
-            ),
-            const Divider(height: 20, thickness: 1),
-
-            ListTile(
-              leading: const Icon(
-                Icons.person_outline,
-                color: Color.fromARGB(255, 166, 128, 199),
-              ),
-              title: const Text("Kullanıcı adı"),
-              subtitle: Text(_username),
-              horizontalTitleGap: 10.0,
-            ),
-
-            ListTile(
-              leading: const Icon(
-                Icons.email_outlined,
-                color: Color.fromARGB(255, 166, 128, 199),
-              ),
-              title: const Text("E-posta adresi"),
-              subtitle: Text(_email),
-              horizontalTitleGap: 10.0,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAccountSettingSection() {
+  Widget _buildAccountSettingSection(
+    BuildContext context,
+    AuthController auth,
+  ) {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -457,7 +355,7 @@ class _AccountScreenState extends State<AccountScreen> {
               leading: const Icon(Icons.edit, color: Colors.green),
               title: const Text("Hesap Bilgilerini Güncelle"),
               trailing: const Icon(Icons.arrow_forward_ios, size: 18),
-              onTap: _updateAccountInfo,
+              onTap: () => _updateAccountInfo(context, auth),
               horizontalTitleGap: 10.0,
             ),
           ],
@@ -466,7 +364,10 @@ class _AccountScreenState extends State<AccountScreen> {
     );
   }
 
-  Widget _buildPasswordManagementSection() {
+  Widget _buildPasswordManagementSection(
+    BuildContext context,
+    AuthController auth,
+  ) {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
@@ -494,7 +395,7 @@ class _AccountScreenState extends State<AccountScreen> {
               ),
               title: const Text("Şifreyi değiştir"),
               trailing: const Icon(Icons.arrow_forward_ios, size: 18),
-              onTap: _changePassword,
+              onTap: () => _changePassword(context, auth),
               horizontalTitleGap: 10.0,
             ),
           ],
@@ -503,7 +404,10 @@ class _AccountScreenState extends State<AccountScreen> {
     );
   }
 
-  Widget _buildAppSettingsSection() {
+  Widget _buildAppSettingsSection(
+    BuildContext context,
+    AccountController account,
+  ) {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
@@ -530,7 +434,7 @@ class _AccountScreenState extends State<AccountScreen> {
               ),
               title: const Text("Genel Ayarlar"),
               trailing: const Icon(Icons.arrow_forward_ios, size: 18),
-              onTap: _openAppSettings,
+              onTap: () => _openAppSettings(context, account),
               horizontalTitleGap: 10.0,
             ),
             // buraya bildirim ayarları, tema vs vs eklenecek
@@ -577,10 +481,11 @@ class _AccountScreenState extends State<AccountScreen> {
     );
   }
 
-  Widget _buildLogoutButton() {
+  Widget _buildLogoutButton(BuildContext context) {
+    final auth = Provider.of<AuthController>(context, listen: false);
     return Center(
       child: ElevatedButton.icon(
-        onPressed: _handleLogOut,
+        onPressed: () => auth.logout(),
         icon: const Icon(Icons.logout),
         label: const Text("Çıkış Yap"),
         style: ElevatedButton.styleFrom(
@@ -596,109 +501,20 @@ class _AccountScreenState extends State<AccountScreen> {
     );
   }
 
-  Widget _buildStatsSection() {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      color: Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              "Hesap İstatistikleri",
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-            const Divider(height: 20, thickness: 1, color: Colors.white),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildStatItem(
-                  icon: Icons.notes,
-                  label: "Notlar",
-                  count: _notesCount,
-                  color: Color.fromARGB(255, 166, 128, 199),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => NoteScreen()),
-                    );
-                  },
-                ),
-                _buildStatItem(
-                  icon: Icons.assignment_outlined,
-                  label: "Görevler",
-                  count: _tasksCount,
-                  color: Color.fromARGB(255, 166, 128, 199),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => TasksScreen()),
-                    );
-                  },
-                ),
-                _buildStatItem(
-                  icon: Icons.check_circle_outline,
-                  label: "Tamamlanan",
-                  count: _completedTasksCount,
-                  color: Color.fromARGB(255, 166, 128, 199),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => TasksScreen()),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatItem({
-    required IconData icon,
-    required String label,
-    required int count,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          CircleAvatar(
-            backgroundColor: const Color.fromARGB(255, 230, 240, 255),
-            radius: 30,
-            child: Icon(icon, size: 30, color: color),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: const TextStyle(fontSize: 16, color: Colors.black),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            count.toString(),
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    final auth = Provider.of<AuthController>(context);
+    final account = Provider.of<AccountController>(context);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (auth.isLoggedIn) {
+        account.loadProductivityStats();
+      } else {
+        account.resetStats();
+      }
+      account.loadNotificationSetting();
+    });
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -720,39 +536,36 @@ class _AccountScreenState extends State<AccountScreen> {
 
           children: [
             // kullanıcı adı ve profil alanı
-            _buildProfileHeader(),
+            const ProfileHeader(),
             const SizedBox(height: 10),
 
             // hesap bilgileri ya da login registration
-            if (_isLoggedIn)
-              _buildAccountInfoSection()
-            else
+            if (auth.isLoggedIn) ...[
+              const AccountInfoSection(),
+
+              const SizedBox(height: 10),
+
+              const StatsSection(),
+
+              const SizedBox(height: 10),
+
+              _buildAccountSettingSection(context, auth),
+              const SizedBox(height: 10),
+              _buildPasswordManagementSection(context, auth),
+              const SizedBox(height: 10),
+            ] else ...[
               _buildLoginRegistrationSection(),
+              const SizedBox(height: 10),
+            ],
+
+            _buildAppSettingsSection(context, account),
             const SizedBox(height: 10),
 
-            if (_isLoggedIn) _buildStatsSection() else const SizedBox.shrink(),
-            const SizedBox(height: 10),
-
-            // open the account setting section, if user is logged in
-            if (_isLoggedIn)
-              _buildAccountSettingSection()
-            else
-              const SizedBox.shrink(), //shrink() gizlemek için kullanılır
-            const SizedBox(height: 10),
-
-            // password management section
-            if (_isLoggedIn)
-              _buildPasswordManagementSection()
+            // Çıkış yap butonu
+            if (auth.isLoggedIn)
+              _buildLogoutButton(context)
             else
               const SizedBox.shrink(),
-            const SizedBox(height: 10),
-
-            // app settings section
-            _buildAppSettingsSection(),
-            const SizedBox(height: 10),
-
-            // logout section
-            if (_isLoggedIn) _buildLogoutButton() else const SizedBox.shrink(),
           ],
         ),
       ),

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:notepad/controllers/account_controller.dart';
 import 'package:provider/provider.dart';
 import 'screens/home_screen.dart';
 import 'package:notepad/databases/database.dart';
 import 'controllers/note_controller.dart';
 import 'controllers/task_controller.dart';
+import 'controllers/auth_controller.dart';
+import 'controllers/account_controller.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,6 +26,8 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (context) => NoteController()),
         ChangeNotifierProvider(create: (context) => TaskController()),
+        ChangeNotifierProvider(create: (context) => AuthController()),
+        ChangeNotifierProvider(create: (context) => AccountController()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

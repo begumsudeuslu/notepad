@@ -1,7 +1,9 @@
 // login_screen.dart
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'register_screen.dart';
 import 'forgot_password_screen.dart';
+import '../../controllers/auth_controller.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -13,31 +15,40 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false;
 
   // Giriş işlemini simüle eder.
-  void _handleLogin() {
-    final String email = _emailController.text;
-    final String password = _passwordController.text;
+  void _handleLogin() async {
+    setState(() {
+      _isLoading = true;
+    });
 
-    if (email.isEmpty || password.isEmpty) {
+    try {
+      await Provider.of<AuthController>(
+        context,
+        listen: false,
+      ).login(_emailController.text, _passwordController.text);
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Lütfen e-posta ve şifrenizi girin."),
+          content: Text("Giriş işlemi başarılı (simülasyon)"),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      Navigator.pop(context);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
           backgroundColor: Colors.redAccent,
         ),
       );
-      return;
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
-
-    // burada kimlik kontrolü yaplmalı normalde, database'den gelenlerle
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Giriş işlemi başarılı (simülasyon)"),
-        backgroundColor: Colors.green,
-      ),
-    );
-
-    Navigator.pop(context, true);
   }
 
   // forgot_password
@@ -52,7 +63,6 @@ class _LoginScreenState extends State<LoginScreen> {
   void _goToRegister() {
     Navigator.push(
       context,
-      // Yeni oluşturduğumuz RegisterScreen'e yönlendiriyoruz.
       MaterialPageRoute(builder: (context) => const RegisterScreen()),
     );
   }
@@ -72,7 +82,7 @@ class _LoginScreenState extends State<LoginScreen> {
           'Giriş Yap',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
-        // AppBar rengini tatlı mor yapıyoruz
+
         backgroundColor: Color.fromARGB(255, 166, 128, 199),
         centerTitle: true,
         elevation: 0,
@@ -86,7 +96,6 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Uygulama Logosu veya Simgesi
             const Icon(
               Icons.lock_person_outlined,
               size: 100,
@@ -150,7 +159,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
             // Giriş Yap Butonu
             ElevatedButton(
-              onPressed: _handleLogin,
+              onPressed: _isLoading ? null : _handleLogin,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color.fromARGB(255, 173, 134, 207),
                 foregroundColor: Colors.white,
@@ -160,7 +169,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 textStyle: const TextStyle(fontSize: 18),
               ),
-              child: const Text('Giriş Yap'),
+              child: _isLoading
+                  ? const CircularProgressIndicator(color: Colors.white)
+                  : Text('Giriş Yap'),
             ),
             const SizedBox(height: 20),
 

@@ -1,5 +1,7 @@
 // forgot_password.dart
 import 'package:flutter/material.dart';
+import '../../controllers/auth_controller.dart';
+import 'package:provider/provider.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -11,32 +13,42 @@ class ForgotPasswordScreen extends StatefulWidget {
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   // E-posta giriş alanının kontrolcüsü
   final TextEditingController _emailController = TextEditingController();
+  bool _isLoading = false;
 
   // Şifre sıfırlama işlemini simüle eden fonksiyon
-  void _handlePasswordReset() {
+  void _handlePasswordReset() async {
     final String email = _emailController.text;
 
-    // Basit bir boş alan kontrolü
-    if (email.isEmpty) {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await Provider.of<AuthController>(
+        context,
+        listen: false,
+      ).resetPassword(_emailController.text);
+
+      // başarılı olursa
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Lütfen e-posta adresinizi girin."),
+          content: Text("Şifre sıfırlama linki e-posta adresinize gönderildi!"),
+          backgroundColor: Colors.green,
+        ),
+      );
+      Navigator.pop(context);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("E-postanız veya şifreniz yanlış!"),
           backgroundColor: Colors.redAccent,
         ),
       );
-      return;
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
-
-    // Şimdilik başarılı bir simülasyon mesajı gösterildi ve ekran kapatıldı
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Şifre sıfırlama linki e-posta adresinize gönderildi!"),
-        backgroundColor: Colors.green,
-      ),
-    );
-
-    // İşlem tamamlandıktan sonra bir önceki ekrana geri dönüyoruz.
-    Navigator.pop(context);
   }
 
   @override
@@ -49,9 +61,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Şifremi Unuttum'),
-        centerTitle: false,
-        backgroundColor: Colors.blue,
+        title: const Text(
+          'Şifremi Unuttum',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+        backgroundColor: Color.fromARGB(255, 166, 128, 199),
+        elevation: 0,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -61,7 +80,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             const Icon(
               Icons.lock_reset_outlined,
               size: 100,
-              color: Colors.blue,
+              color: Color(0xFFC3A5DE),
             ),
             const SizedBox(height: 10),
 
@@ -71,7 +90,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Colors.blue,
+                color: Color(0xFFC3A5DE),
               ),
             ),
             const SizedBox(height: 10),
@@ -100,9 +119,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
             // Şifremi Sıfırla Butonu
             ElevatedButton(
-              onPressed: _handlePasswordReset,
+              onPressed: _isLoading ? null : _handlePasswordReset,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
+                backgroundColor: Color.fromARGB(255, 173, 134, 207),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 15),
                 shape: RoundedRectangleBorder(
@@ -110,7 +129,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 ),
                 textStyle: const TextStyle(fontSize: 18),
               ),
-              child: const Text('Şifremi Sıfırla'),
+              child: _isLoading
+                  ? const CircularProgressIndicator(color: Colors.white)
+                  : const Text('Şifremi Sıfırla'),
             ),
           ],
         ),
