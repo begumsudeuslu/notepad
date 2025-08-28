@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:notepad/widgets/account_widgets/account_info_section.dart';
 import 'package:notepad/widgets/account_widgets/account_settings_section.dart';
+import 'package:notepad/widgets/account_widgets/app_settings_section.dart';
 import 'package:notepad/widgets/account_widgets/login_registration_section.dart';
 import 'package:notepad/widgets/account_widgets/stats_section.dart';
 import 'package:provider/provider.dart';
@@ -12,6 +13,7 @@ import '../controllers/account_controller.dart';
 import '../controllers/auth_controller.dart';
 import '../widgets/account_widgets/profile_header.dart';
 import 'package:notepad/widgets/account_widgets/change_password_section.dart';
+import 'package:notepad/widgets/account_widgets/logout_button.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -332,66 +334,6 @@ class _AccountScreenState extends State<AccountScreen> {
     );
   }
 
-  Widget _buildAppSettingsSection(
-    BuildContext context,
-    AccountController account,
-  ) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadiusGeometry.circular(10),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              "Uygulama Ayarları",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.start,
-            ),
-
-            const Divider(height: 20, thickness: 1),
-
-            ListTile(
-              leading: const Icon(
-                Icons.settings_outlined,
-                color: Colors.purple,
-              ),
-              title: const Text("Genel Ayarlar"),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 18),
-              onTap: () => _openAppSettings(context, account),
-              horizontalTitleGap: 10.0,
-            ),
-            // buraya bildirim ayarları, tema vs vs eklenecek
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLogoutButton(BuildContext context) {
-    final auth = Provider.of<AuthController>(context, listen: false);
-    return Center(
-      child: ElevatedButton.icon(
-        onPressed: () => auth.logout(),
-        icon: const Icon(Icons.logout),
-        label: const Text("Çıkış Yap"),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.red,
-          foregroundColor: Colors.white,
-          minimumSize: const Size(160, 40), // buton boyutu
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          textStyle: const TextStyle(fontSize: 18),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthController>(context);
@@ -461,12 +403,15 @@ class _AccountScreenState extends State<AccountScreen> {
               const SizedBox(height: 10),
             ],
 
-            _buildAppSettingsSection(context, account),
+            AppSettingsSection(
+              account: account,
+              onOpenAppSettings: _openAppSettings,
+            ),
             const SizedBox(height: 10),
 
             // Çıkış yap butonu
             if (auth.isLoggedIn)
-              _buildLogoutButton(context)
+              LogoutButton(auth: auth)
             else
               const SizedBox.shrink(),
           ],
