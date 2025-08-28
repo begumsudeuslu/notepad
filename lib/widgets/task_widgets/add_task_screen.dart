@@ -6,8 +6,9 @@ import 'package:intl/intl.dart';
 
 class AddTaskScreen extends StatefulWidget {
   final Task? taskToEdit;
+  final DateTime? initialDate; // Bu parametre burada tanımlı olmalı
 
-  const AddTaskScreen({super.key, this.taskToEdit});
+  const AddTaskScreen({super.key, this.taskToEdit, this.initialDate});
 
   @override
   State<AddTaskScreen> createState() => _AddTaskScreenState();
@@ -27,7 +28,6 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   void initState() {
     super.initState();
 
-    // TaskController'ı al
     _controller = Provider.of<TaskController>(context, listen: false);
 
     if (widget.taskToEdit != null) {
@@ -37,8 +37,10 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
       _selectedTime = TimeOfDay.fromDateTime(widget.taskToEdit!.date);
       _selectedColor = widget.taskToEdit!.color ?? '8A2BE2';
     } else {
-      _selectedDate = DateTime.now();
+      // Gönderilen initialDate parametresini kullan, yoksa şimdiki zamanı kullan.
+      _selectedDate = widget.initialDate ?? DateTime.now();
       _selectedColor = '8A2BE2';
+      _selectedTime = null;
     }
   }
 
@@ -53,23 +55,32 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     final newTitle = _titleController.text.trim();
     if (newTitle.isEmpty) return;
 
+    DateTime finalDate = _selectedDate;
+    if (_selectedTime != null) {
+      finalDate = DateTime(
+        _selectedDate.year,
+        _selectedDate.month,
+        _selectedDate.day,
+        _selectedTime!.hour,
+        _selectedTime!.minute,
+      );
+    }
+
     if (widget.taskToEdit != null) {
-      // Görevi güncelle
       final updatedTask = widget.taskToEdit!.copy(
         title: newTitle,
         description: _descriptionController.text.trim(),
-        date: _selectedDate,
+        date: finalDate,
         color: _selectedColor,
       );
 
       await _controller.updateTask(updatedTask);
     } else {
-      // Yeni görev oluştur ve TaskController üzerinden ekle
       final task = Task(
         title: newTitle,
         description: _descriptionController.text.trim(),
         isDone: false,
-        date: _selectedDate,
+        date: finalDate,
         color: _selectedColor,
       );
 
@@ -92,6 +103,21 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     if (pickedDate != null) {
       setState(() {
         _selectedDate = pickedDate;
+        if (_selectedTime != null) {
+          _selectedDate = DateTime(
+            _selectedDate.year,
+            _selectedDate.month,
+            _selectedDate.day,
+            _selectedTime!.hour,
+            _selectedTime!.minute,
+          );
+        } else {
+          _selectedDate = DateTime(
+            _selectedDate.year,
+            _selectedDate.month,
+            _selectedDate.day,
+          );
+        }
       });
     }
   }
@@ -105,6 +131,13 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     if (pickedTime != null) {
       setState(() {
         _selectedTime = pickedTime;
+        _selectedDate = DateTime(
+          _selectedDate.year,
+          _selectedDate.month,
+          _selectedDate.day,
+          _selectedTime!.hour,
+          _selectedTime!.minute,
+        );
       });
     }
   }

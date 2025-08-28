@@ -23,9 +23,23 @@ class _TasksScreenState extends State<TasksScreen> {
     _controller.refreshAllTasks();
   }
 
-  // Hem görev ekleme hem de düzenleme için kullanılan metod.
-  // Bu metot, AddTaskScreen'den dönülen değeri kontrol ederek listeyi yeniler.
-  Future<void> _navigateAndRefresh({Task? taskToEdit}) async {
+  // Yeni bir görev eklemek için kullanılan metod
+  Future<void> _navigateToAddScreen() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            AddTaskScreen(initialDate: _controller.selectedDate),
+      ),
+    );
+
+    if (result == true) {
+      _controller.refreshAllTasks();
+    }
+  }
+
+  // Mevcut bir görevi düzenlemek için kullanılan metod
+  Future<void> _navigateToEditScreen(Task taskToEdit) async {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -33,14 +47,11 @@ class _TasksScreenState extends State<TasksScreen> {
       ),
     );
 
-    // Eğer AddTaskScreen'den true değeri dönerse (görev kaydedildi/güncellendi)
-    // Listeyi yenile.
     if (result == true) {
       _controller.refreshAllTasks();
     }
   }
 
-  // Ortak stilize butonu oluşturan yeni metot
   Widget _buildStyledFloatingActionButton({required VoidCallback onPressed}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 0),
@@ -60,9 +71,6 @@ class _TasksScreenState extends State<TasksScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final double screenHeight = MediaQuery.of(context).size.height;
-    final double expandedHeight = screenHeight * 0.6;
-
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -98,12 +106,9 @@ class _TasksScreenState extends State<TasksScreen> {
                   ),
                 ],
               ),
-              child: Column(
+              child: const Column(
                 mainAxisSize: MainAxisSize.min,
-                children: [
-                  const CalendarAndControls(),
-                  const SizedBox(height: 8),
-                ],
+                children: [CalendarAndControls(), SizedBox(height: 8)],
               ),
             ),
           ),
@@ -112,18 +117,17 @@ class _TasksScreenState extends State<TasksScreen> {
               return TaskListSection(
                 onEditTask: (index) async {
                   final task = controller.filteredTasks[index];
-                  await _navigateAndRefresh(taskToEdit: task);
+                  await _navigateToEditScreen(task);
                 },
               );
             },
           ),
-          SliverToBoxAdapter(child: SizedBox(height: 80.0)),
+          const SliverToBoxAdapter(child: SizedBox(height: 80.0)),
         ],
       ),
-      // Butonun stilini de koruyarak _navigateAndRefresh metodunu kullanıyoruz.
       floatingActionButton: _buildStyledFloatingActionButton(
         onPressed: () async {
-          await _navigateAndRefresh();
+          await _navigateToAddScreen();
         },
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,

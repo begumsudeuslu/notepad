@@ -11,6 +11,8 @@ class CalendarAndControls extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Provider.of<TaskController>(context);
 
+    
+
     // Takvimde kırmızı noktaların görünmesi için gerekli fonksiyon
     List<Task> getTasksForDay(DateTime day) {
       return controller.allTasks.where((task) {

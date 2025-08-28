@@ -12,7 +12,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // veritabanını sıfırla
-  // await NotePadDatabase.instance.resetDatabase();
+  //await NotePadDatabase.instance.resetDatabase();
 
   runApp(const MyApp());
 }
