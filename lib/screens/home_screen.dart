@@ -17,7 +17,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
-
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -43,7 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body:_buildPage(),
+      body: _buildPage(),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
@@ -81,7 +80,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-    Widget _buildPage() {
+  Widget _buildPage() {
     if (_selectedIndex == 0) {
       return const NoteScreen();
     } else if (_selectedIndex == 1) {

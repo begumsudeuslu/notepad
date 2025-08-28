@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:notepad/models/task.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 
 // Bir görevi görselleştirmek için kullanılan özelleştirilmiş bir widget'tır.
 // StatelessWidget olduğu için kendi durumunu (state) tutmaz, sadece aldığı veriye göre arayüzü çizer.
@@ -10,6 +11,8 @@ class TaskCard extends StatelessWidget {
   final VoidCallback onToggle;
   // Görevi düzenleme diyaloğunu açmak için bir geri çağırma fonksiyonu
   final VoidCallback onEdit;
+  // Görevi silme işlemi için bir geri çağırma fonksiyonu
+  final VoidCallback onDelete;
 
   // Kurucu metot(contructor), gerekli verileri dışarıdan alır
   const TaskCard({
@@ -17,6 +20,7 @@ class TaskCard extends StatelessWidget {
     required this.task,
     required this.onToggle,
     required this.onEdit,
+    required this.onDelete,
   });
 
   // Bu metot, Task nesnesindeki renk adını (örneğin 'red') alıp,
@@ -46,62 +50,105 @@ class TaskCard extends StatelessWidget {
       elevation: 5,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
-      child: Row(
-        children: [
-          // Kartın sol tarafına renkli bir bar ekliyoruz.
-          Container(
-            width: 8,
-            height: 70,
-            decoration: BoxDecoration(
-              // _getTaskColor metodu ile dinamik renk ataması
-              color: _getTaskColor(task.color),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(15),
-                bottomLeft: Radius.circular(15),
-              ),
+      // Card'ı Slidable widget'ı ile sarıyoruz.
+      child: Slidable(
+        key: ValueKey(task.id), // Her öğenin benzersiz bir anahtarı olmalı
+        endActionPane: ActionPane(
+          motion: const DrawerMotion(),
+          children: [
+            SlidableAction(
+              onPressed: (context) => onEdit(),
+              backgroundColor: const Color.fromARGB(255, 173, 134, 207),
+              foregroundColor: Colors.white,
+              icon: Icons.edit,
+              label: 'Düzenle',
             ),
-          ),
-          // Geri kalan alanı doldurmak için Expanded kullanıyoruz.
-          Expanded(
-            // Görev başlığını, checkbox'ı ve düzenleme ikonunu içeren ana liste elemanı
-            child: ListTile(
-              // İçerik boşluklarını ayarlıyoruz.
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 8,
-              ),
-              // Başlangıçta bir Checkbox widget'ı ekliyoruz.
-              leading: Checkbox(
-                // Checkbox'ın durumunu (işaretli mi değil mi) Task nesnesinden alıyoruz.
-                value: task.isDone,
-                // Değiştiğinde, dışarıdan gelen onToggle fonksiyonunu çağırıyoruz.
-                onChanged: (_) => onToggle(),
-                // Checkbox'ın rengini belirliyoruz.
-                activeColor: Colors.blue.shade500,
-              ),
-              // Görev başlığını gösteren metin (Text) widget'ı.
-              title: Text(
-                task.title, // Task nesnesinden başlığı alıyoruz.
-                // Metin stilini ayarlıyoruz.
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
-                  // Görev tamamlandıysa üstünü çiziyoruz.
-                  decoration: task.isDone
-                      ? TextDecoration.lineThrough
-                      : TextDecoration.none,
-                  decorationColor: Colors.grey.shade600,
+            SlidableAction(
+              onPressed: (context) => onDelete(),
+              backgroundColor: Color.fromARGB(255, 117, 116, 116),
+              foregroundColor: Colors.white,
+              icon: Icons.delete,
+              label: 'Sil',
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Kartın sol tarafına renkli bir bar ekliyoruz.
+            Container(
+              width: 8,
+              height: 70,
+              decoration: BoxDecoration(
+                // _getTaskColor metodu ile dinamik renk ataması
+                color: _getTaskColor(task.color),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(15),
+                  bottomLeft: Radius.circular(15),
                 ),
               ),
-              // Sağ tarafa bir düzenleme butonu ekliyoruz.
-              trailing: IconButton(
-                icon: Icon(Icons.edit, color: Colors.blue.shade600),
-                // Tıklandığında, dışarıdan gelen onEdit fonksiyonunu çağırıyoruz.
-                onPressed: onEdit,
+            ),
+            // Geri kalan alanı doldurmak için Expanded kullanıyoruz.
+            Expanded(
+              // Görev başlığını, checkbox'ı ve düzenleme ikonunu içeren ana liste elemanı
+              child: ListTile(
+                // İçerik boşluklarını ayarlıyoruz.
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                // Başlangıçta yuvarlak mor onay butonu ekliyoruz
+                leading: InkWell(
+                  onTap:
+                      onToggle, // Tıklandığında onToggle fonksiyonunu çağırıyoruz
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: task.isDone
+                          ? const Color.fromARGB(
+                              255,
+                              173,
+                              134,
+                              207,
+                            ) // Tamamlandıysa mor
+                          : Colors.transparent, // Tamamlanmadıysa şeffaf
+                      border: Border.all(
+                        color: task.isDone
+                            ? const Color.fromARGB(
+                                255,
+                                173,
+                                134,
+                                207,
+                              ) // Tamamlandıysa mor
+                            : Colors.grey, // Tamamlanmadıysa gri
+                        width: 2,
+                      ),
+                    ),
+                    child: task.isDone
+                        ? const Icon(Icons.check, size: 16, color: Colors.white)
+                        : null,
+                  ),
+                ),
+                // Görev başlığını gösteren metin (Text) widget'ı.
+                title: Text(
+                  task.title, // Task nesnesinden başlığı alıyoruz.
+                  // Metin stilini ayarlıyoruz.
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                    // Görev tamamlandıysa üstünü çiziyoruz.
+                    decoration: task.isDone
+                        ? TextDecoration.lineThrough
+                        : TextDecoration.none,
+                    decorationColor: Colors.grey.shade600,
+                  ),
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

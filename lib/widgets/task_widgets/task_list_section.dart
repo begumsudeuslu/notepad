@@ -1,19 +1,22 @@
-// task_list_section.dart
 import 'package:flutter/material.dart';
 import 'package:notepad/controllers/task_controller.dart';
-import 'package:notepad/widgets/task_widgets/add_task_screen.dart';
+import 'package:notepad/models/task.dart';
+import 'package:provider/provider.dart';
 import 'task_list_view.dart';
-import 'task_dialogs.dart';
 
 class TaskListSection extends StatelessWidget {
-  final TaskController controller;
+  // onEditTask parametresini burada tanımlıyoruz
+  final Function(int) onEditTask;
 
-  const TaskListSection({super.key, required this.controller});
+  const TaskListSection({super.key, required this.onEditTask});
 
   @override
   Widget build(BuildContext context) {
+    // Controller'a erişmek için zaten TasksScreen'de Consumer kullanıldığı için burada gerek yok
+    final controller = Provider.of<TaskController>(context);
     final filtered = controller.filteredTasks;
 
+    // Liste boşsa bu mesajı gösterir
     if (filtered.isEmpty) {
       return const SliverFillRemaining(
         hasScrollBody: false,
@@ -34,23 +37,11 @@ class TaskListSection extends StatelessWidget {
       );
     }
 
+    // Liste boş değilse, TaskListView'ı döndürür ve parametreleri doğru şekilde iletir
     return TaskListView(
       filteredTasks: filtered,
-      // Düzeltildi: index ile Task nesnesine eriş ve controller'a gönder
       onToggleTask: (index) => controller.toggleTask(filtered[index]),
-      onEditTask: (index) async {
-        final task = controller.filteredTasks[index];
-        final result = await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => AddTaskScreen(taskToEdit: task),
-          ),
-        );
-        if (result == true) {
-          controller.refreshAllTasks();
-        }
-      },
-      // Düzeltildi: index ile Task nesnesinin id'sine eriş ve controller'a gönder
+      onEditTask: onEditTask, // Parametreyi TaskListView'a iletiyor
       onDeleteTask: (index) => controller.deleteTask(filtered[index].id!),
     );
   }

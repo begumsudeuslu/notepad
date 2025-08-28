@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:notepad/controllers/task_controller.dart';
+import 'package:notepad/models/task.dart';
 
 class CalendarAndControls extends StatelessWidget {
   const CalendarAndControls({super.key});
@@ -9,6 +10,13 @@ class CalendarAndControls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Provider.of<TaskController>(context);
+
+    // Takvimde kırmızı noktaların görünmesi için gerekli fonksiyon
+    List<Task> getTasksForDay(DateTime day) {
+      return controller.allTasks.where((task) {
+        return isSameDay(task.date, day);
+      }).toList();
+    }
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -20,6 +28,7 @@ class CalendarAndControls extends StatelessWidget {
       ),
       child: Column(
         children: [
+          // Arama çubuğu
           TextField(
             controller: controller.searchController,
             decoration: InputDecoration(
@@ -55,9 +64,7 @@ class CalendarAndControls extends StatelessWidget {
             child: TableCalendar(
               firstDay: DateTime.utc(2020, 1, 1),
               lastDay: DateTime.utc(2030, 12, 31),
-              focusedDay:
-                  controller.selectedDate ??
-                  DateTime.now(), // Nullable kontrolü eklendi
+              focusedDay: controller.selectedDate ?? DateTime.now(),
               selectedDayPredicate: (day) =>
                   controller.selectedDate != null &&
                   isSameDay(controller.selectedDate!, day),
@@ -69,18 +76,34 @@ class CalendarAndControls extends StatelessWidget {
                   controller.setSelectedDate(selectedDay);
                 }
               },
-              eventLoader: (day) =>
-                  controller.getTasksForDay(day).isNotEmpty ? [true] : [],
+              // Bir güne ait tek nokta göstermek için markerBuilder kullanıyoruz
+              eventLoader: getTasksForDay,
+              calendarBuilders: CalendarBuilders(
+                markerBuilder: (context, day, tasks) {
+                  // O gün için görev varsa sadece bir nokta döndür
+                  if (tasks.isNotEmpty) {
+                    return Positioned(
+                      bottom: 6,
+                      child: Container(
+                        height: 7.0,
+                        width: 7.0,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.red,
+                        ),
+                      ),
+                    );
+                  }
+                  return const SizedBox();
+                },
+              ),
+              // Sizin kodunuzdaki takvim stilini buraya ekledim
               calendarStyle: CalendarStyle(
-                selectedDecoration: BoxDecoration(
+                selectedDecoration: const BoxDecoration(
                   color: Color.fromARGB(255, 166, 128, 199),
                   shape: BoxShape.circle,
                 ),
                 weekendTextStyle: const TextStyle(color: Colors.blueGrey),
-                markerDecoration: BoxDecoration(
-                  color: Colors.red,
-                  shape: BoxShape.circle,
-                ),
                 defaultTextStyle: const TextStyle(color: Colors.black),
                 outsideTextStyle: const TextStyle(color: Colors.grey),
               ),
@@ -101,8 +124,9 @@ class CalendarAndControls extends StatelessWidget {
                 child: Row(
                   children: [
                     Switch(
-                      value: controller.showCompleted,
-                      onChanged: controller.toggleShowCompleted,
+                      value: controller.showCompletedOnly,
+                      onChanged: (value) =>
+                          controller.toggleShowCompleted(value),
                     ),
                     const Text('Tamamlananları göster'),
                   ],
@@ -128,6 +152,7 @@ class CalendarAndControls extends StatelessWidget {
               ),
             ],
           ),
+          
         ],
       ),
     );

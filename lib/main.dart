@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'Notepad App',
         theme: ThemeData(
-          primaryColor: Color.fromARGB(255, 173, 134, 207),
+          primaryColor: const Color.fromARGB(255, 173, 134, 207),
           useMaterial3: false,
           inputDecorationTheme: const InputDecorationTheme(
             prefixIconColor: Color.fromARGB(255, 173, 134, 207), // ikon mor
@@ -49,6 +49,31 @@ class MyApp extends StatelessWidget {
                 width: 2,
               ),
             ),
+          ),
+          // Switch düğmesinin rengini burada global olarak ayarlıyoruz
+          switchTheme: SwitchThemeData(
+            thumbColor: MaterialStateProperty.resolveWith<Color>((states) {
+              if (states.contains(MaterialState.selected)) {
+                return const Color.fromARGB(
+                  255,
+                  173,
+                  134,
+                  207,
+                ); // Açıkkenki topuz rengi
+              }
+              return Colors.grey; // Kapalıykenki topuz rengi
+            }),
+            trackColor: MaterialStateProperty.resolveWith<Color>((states) {
+              if (states.contains(MaterialState.selected)) {
+                return const Color.fromARGB(
+                  255,
+                  173,
+                  134,
+                  207,
+                ).withOpacity(0.5); // Açıkkenki yol rengi
+              }
+              return Colors.grey.shade300; // Kapalıykenki yol rengi
+            }),
           ),
         ),
         home: const HomeScreen(),

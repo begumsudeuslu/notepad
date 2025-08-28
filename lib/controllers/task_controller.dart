@@ -4,113 +4,105 @@ import 'package:notepad/databases/database.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class TaskController extends ChangeNotifier {
-  // Yönetilecek veriler
   List<Task> _allTasks = [];
   String _searchQuery = '';
-  bool _showCompleted = true;
-  DateTime _selectedDate = DateTime.now();
+  // true: sadece tamamlananları, false: sadece tamamlanmayanları
+  bool _showCompletedOnly = false; // Varsayılan olarak tamamlananları gösterme
+  DateTime? _selectedDate = DateTime.now();
   String _sortBy = 'created';
 
-  // Controller'a dışarıdan erişim için getter'lar
-  List<Task> get allTasks => List.unmodifiable(_allTasks);
-  String get searchQuery => _searchQuery;
-  bool get showCompleted => _showCompleted;
-  DateTime get selectedDate => _selectedDate;
-  String get sortBy => _sortBy;
-
-  // Arama çubuğu için controller
   final TextEditingController searchController = TextEditingController();
 
-  // Constructor
   TaskController() {
     refreshAllTasks();
   }
 
-  // Tüm görevleri veritabanından yükler ve filtreleme işlemini başlatır
+  List<Task> get allTasks => List.unmodifiable(_allTasks);
+  String get searchQuery => _searchQuery;
+  bool get showCompletedOnly => _showCompletedOnly;
+  DateTime? get selectedDate => _selectedDate;
+  String get sortBy => _sortBy;
+
+  /// Veritabanından tüm görevleri çek ve UI'ı güncelle
   Future<void> refreshAllTasks() async {
     _allTasks = await NotePadDatabase.instance.readAllTask();
-    _refreshFilteredTasks();
-  }
-
-  // Görev ekler ve listeyi yeniler
-  Future<void> addTask(Task task) async {
-    await NotePadDatabase.instance.createTask(task);
-    await refreshAllTasks();
-  }
-
-  // Görev düzenler ve listeyi yeniler
-  Future<void> updateTask(Task task) async {
-    await NotePadDatabase.instance.updateTask(task);
-    await refreshAllTasks();
-  }
-
-  // Görev siler ve listeyi yeniler
-  Future<void> deleteTask(int taskId) async {
-    await NotePadDatabase.instance.deleteTask(taskId);
-    await refreshAllTasks();
-  }
-
-  // Görev tamamlanma durumunu değiştirir
-  void toggleTask(Task task) async {
-    final updatedTask = task.copy(isDone: !task.isDone);
-    await NotePadDatabase.instance.updateTask(updatedTask);
-    await refreshAllTasks();
-  }
-
-  // Arama, filtre ve takvim mantığını tek bir metotta toplar
-  void _refreshFilteredTasks() {
     notifyListeners();
   }
 
-  // Arama sorgusunu ayarlar
+  /// Görev ekle ve UI'ı anında güncelle
+  Future<void> addTask(Task task) async {
+    final newTask = await NotePadDatabase.instance.createTask(task);
+    _allTasks.add(newTask);
+    notifyListeners();
+  }
+
+  Future<void> updateTask(Task task) async {
+    await NotePadDatabase.instance.updateTask(task);
+    final index = _allTasks.indexWhere((t) => t.id == task.id);
+    if (index != -1) {
+      _allTasks[index] = task;
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteTask(int taskId) async {
+    await NotePadDatabase.instance.deleteTask(taskId);
+    _allTasks.removeWhere((t) => t.id == taskId);
+    notifyListeners();
+  }
+
+  void toggleTask(Task task) async {
+    final updatedTask = task.copy(isDone: !task.isDone);
+    await updateTask(updatedTask);
+  }
+
   void setSearchQuery(String query) {
     _searchQuery = query;
-    _refreshFilteredTasks();
+    notifyListeners();
   }
 
-  // Tamamlanan görevlerin gösterilip gösterilmeyeceğini ayarlar
   void toggleShowCompleted(bool val) {
-    _showCompleted = val;
-    _refreshFilteredTasks();
+    _showCompletedOnly = val;
+    notifyListeners();
   }
 
-  // Sıralama türünü ayarlar
   void setSortBy(String value) {
     _sortBy = value;
-    _refreshFilteredTasks();
+    notifyListeners();
   }
 
-  // Takvimden seçilen tarihi ayarlar
   void setSelectedDate(DateTime date) {
     _selectedDate = date;
-    _refreshFilteredTasks();
+    notifyListeners();
   }
 
-  // Seçili tarihi temizler
   void clearSelectedDate() {
-    _selectedDate = DateTime.now();
-    _refreshFilteredTasks();
+    _selectedDate = null;
+    notifyListeners();
   }
 
-  // Arama sorgusunu temizler
   void clearSearch() {
     _searchQuery = '';
     searchController.clear();
-    _refreshFilteredTasks();
+    notifyListeners();
   }
 
-  // Arama ve filtre uygulanmış görevleri döndüren getter
+  /// Filtrelenmiş görevler
   List<Task> get filteredTasks {
     List<Task> filtered = _allTasks.where((task) {
-      final isSameDayCondition = isSameDay(task.date, _selectedDate);
-      final matchesSearchQuery =
+      final matchesDate =
+          _selectedDate == null || isSameDay(task.date, _selectedDate!);
+      final matchesSearch =
           _searchQuery.isEmpty ||
           task.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           (task.description ?? '').toLowerCase().contains(
             _searchQuery.toLowerCase(),
           );
-      final showCompletedCondition = _showCompleted || !task.isDone;
-      return isSameDayCondition && matchesSearchQuery && showCompletedCondition;
+
+      // Yeni filtre mantığı
+      final matchesCompleted = _showCompletedOnly ? task.isDone : !task.isDone;
+
+      return matchesDate && matchesSearch && matchesCompleted;
     }).toList();
 
     filtered.sort((a, b) {
@@ -124,7 +116,7 @@ class TaskController extends ChangeNotifier {
     return filtered;
   }
 
-  // Takvimde nokta göstermek için o güne ait görevleri döndürür
+  /// Takvimde nokta göstermek için o güne ait görevler
   List<Task> getTasksForDay(DateTime day) {
     return _allTasks.where((task) => isSameDay(task.date, day)).toList();
   }
