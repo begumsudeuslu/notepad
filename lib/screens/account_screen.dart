@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:notepad/widgets/account_widgets/account_info_section.dart';
+import 'package:notepad/widgets/account_widgets/account_settings_section.dart';
+import 'package:notepad/widgets/account_widgets/login_registration_section.dart';
 import 'package:notepad/widgets/account_widgets/stats_section.dart';
 import 'package:provider/provider.dart';
 import '../screens/note_screen.dart';
@@ -9,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../controllers/account_controller.dart';
 import '../controllers/auth_controller.dart';
 import '../widgets/account_widgets/profile_header.dart';
+import 'package:notepad/widgets/account_widgets/change_password_section.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -299,7 +302,9 @@ class _AccountScreenState extends State<AccountScreen> {
                     value: accountController.enableNotifications,
                     onChanged: (bool value) async {
                       await accountController.toggleNotifications(value);
-                      setState(() {});
+                      setState(() {
+                        _enableNotifications = value;
+                      });
                     },
                   ),
                 ],
@@ -324,83 +329,6 @@ class _AccountScreenState extends State<AccountScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const LoginScreen()),
-    );
-  }
-
-  Widget _buildAccountSettingSection(
-    BuildContext context,
-    AuthController auth,
-  ) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-
-        child: Column(
-          children: [
-            Align(
-              alignment: Alignment.centerLeft, // sola hizalamak için
-              child: const Text(
-                "Hesap Ayarları",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                // textAlign: TextAlign.start işe yaramadı hala sola yatık olacak kadar baskın değil
-              ),
-            ),
-
-            const Divider(height: 20, thickness: 1),
-
-            ListTile(
-              leading: const Icon(Icons.edit, color: Colors.green),
-              title: const Text("Hesap Bilgilerini Güncelle"),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 18),
-              onTap: () => _updateAccountInfo(context, auth),
-              horizontalTitleGap: 10.0,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPasswordManagementSection(
-    BuildContext context,
-    AuthController auth,
-  ) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadiusGeometry.circular(10),
-      ),
-
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              "Şifre Yönetimi",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.start,
-            ),
-
-            const Divider(height: 20, thickness: 1),
-
-            ListTile(
-              leading: const Icon(
-                Icons.vpn_key_off_outlined,
-                color: Colors.orange,
-              ),
-              title: const Text("Şifreyi değiştir"),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 18),
-              onTap: () => _changePassword(context, auth),
-              horizontalTitleGap: 10.0,
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -438,43 +366,6 @@ class _AccountScreenState extends State<AccountScreen> {
               horizontalTitleGap: 10.0,
             ),
             // buraya bildirim ayarları, tema vs vs eklenecek
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLoginRegistrationSection() {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadiusGeometry.circular(10),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Text(
-              "Hesabınıza giriş yapın veya yeni bir hesap oluşturun.",
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-
-            const SizedBox(height: 20),
-
-            ElevatedButton.icon(
-              onPressed: _handleLoginRegistration,
-              icon: const Icon(Icons.login),
-              label: const Text("Giriş Yap/ Kayıt Ol"),
-
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color.fromARGB(255, 170, 76, 201),
-                foregroundColor: Colors.white,
-                minimumSize: const Size(double.infinity, 45),
-                textStyle: const TextStyle(fontSize: 14),
-              ),
-            ),
           ],
         ),
       ),
@@ -549,12 +440,24 @@ class _AccountScreenState extends State<AccountScreen> {
 
               const SizedBox(height: 10),
 
-              _buildAccountSettingSection(context, auth),
+              AccountSettingsSection(
+                auth: auth,
+                onUpdateAccountInfo: _updateAccountInfo,
+              ),
+
               const SizedBox(height: 10),
-              _buildPasswordManagementSection(context, auth),
+
+              ChangePasswordSection(
+                auth: auth,
+                onChangePassword: _changePassword,
+              ),
+
               const SizedBox(height: 10),
             ] else ...[
-              _buildLoginRegistrationSection(),
+              LoginRegistrationSection(
+                onHandleLoginRegistration: _handleLoginRegistration,
+              ),
+
               const SizedBox(height: 10),
             ],
 
