@@ -280,38 +280,37 @@ class _AccountScreenState extends State<AccountScreen> {
   void _openAppSettings(BuildContext context, AccountController account) {
     // print("uygulama ayarlarını düzenle...")
 
-    final accountController = Provider.of<AccountController>(
-      context,
-      listen: false,
-    );
-
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text("Uygulama Ayarları"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          content: Consumer<AccountController>(
+            builder: (context, accountController, _) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
-                    "Bildirimleri Etkinleştir",
-                    style: TextStyle(fontSize: 16),
-                  ),
-                  Switch(
-                    value: accountController.enableNotifications,
-                    onChanged: (bool value) async {
-                      await accountController.toggleNotifications(value);
-                      setState(() {
-                        _enableNotifications = value;
-                      });
-                    },
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        "Bildirimleri Etkinleştir",
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      Switch(
+                        value: accountController.enableNotifications,
+                        onChanged: (bool value) async {
+                          await accountController.toggleNotifications(value);
+                          setState(() {
+                            _enableNotifications = value;
+                          });
+                        },
+                      ),
+                    ],
                   ),
                 ],
-              ),
-            ],
+              );
+            },
           ),
           actions: <Widget>[
             TextButton(
