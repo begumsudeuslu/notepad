@@ -301,9 +301,6 @@ class _AccountScreenState extends State<AccountScreen> {
                         value: accountController.enableNotifications,
                         onChanged: (bool value) async {
                           await accountController.toggleNotifications(value);
-                          setState(() {
-                            _enableNotifications = value;
-                          });
                         },
                       ),
                     ],
