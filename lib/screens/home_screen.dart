@@ -29,12 +29,6 @@ class _HomeScreenState extends State<HomeScreen> {
         listen: false,
       );
       noteController.addNoteFromExternal();
-    } else if (_selectedIndex == 1) {
-      // Görev ekleme diyalogunu doğrudan burada çağırırız
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const AddTaskScreen()),
-      );
     }
   }
 
@@ -59,7 +53,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      floatingActionButton: (_selectedIndex == 0 || _selectedIndex == 1)
+      // Sadece "Notlar" sayfasında görünecek şekilde güncellendi.
+      floatingActionButton: (_selectedIndex == 0)
           ? Padding(
               padding: const EdgeInsets.only(bottom: 0),
               child: SizedBox(
@@ -74,7 +69,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             )
-          : null,
+          : null, // Diğer sayfalarda FAB gösterilmeyecek.
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }

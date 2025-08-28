@@ -14,7 +14,7 @@ class TasksScreen extends StatefulWidget {
 }
 
 class _TasksScreenState extends State<TasksScreen> {
-  late TaskController _controller;
+  late final TaskController _controller;
 
   @override
   void initState() {
@@ -23,6 +23,8 @@ class _TasksScreenState extends State<TasksScreen> {
     _controller.refreshAllTasks();
   }
 
+  // Hem görev ekleme hem de düzenleme için kullanılan metod.
+  // Bu metot, AddTaskScreen'den dönülen değeri kontrol ederek listeyi yeniler.
   Future<void> _navigateAndRefresh({Task? taskToEdit}) async {
     final result = await Navigator.push(
       context,
@@ -31,23 +33,39 @@ class _TasksScreenState extends State<TasksScreen> {
       ),
     );
 
+    // Eğer AddTaskScreen'den true değeri dönerse (görev kaydedildi/güncellendi)
+    // Listeyi yenile.
     if (result == true) {
       _controller.refreshAllTasks();
     }
   }
 
+  // Ortak stilize butonu oluşturan yeni metot
+  Widget _buildStyledFloatingActionButton({required VoidCallback onPressed}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 0),
+      child: SizedBox(
+        width: 55,
+        height: 75,
+        child: FloatingActionButton(
+          onPressed: onPressed,
+          backgroundColor: const Color(0xFFC3A5DE),
+          elevation: 8,
+          shape: const CircleBorder(),
+          child: const Icon(Icons.add, size: 30),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Ekranın toplam yüksekliğini dinamik olarak alıyoruz.
     final double screenHeight = MediaQuery.of(context).size.height;
-
-    // expandedHeight değerini dinamik olarak ayarlıyoruz.
     final double expandedHeight = screenHeight * 0.6;
 
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          // İstediğiniz AppBar'ı buraya ekliyoruz.
           SliverAppBar(
             expandedHeight: 50.0,
             floating: true,
@@ -67,8 +85,6 @@ class _TasksScreenState extends State<TasksScreen> {
               ),
             ),
           ),
-
-          // Takvim ve anahtar bölümü için SliverToBoxAdapter kullanıyoruz.
           SliverToBoxAdapter(
             child: Container(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
@@ -91,8 +107,6 @@ class _TasksScreenState extends State<TasksScreen> {
               ),
             ),
           ),
-
-          // Görev listesi için Consumer ve TaskListSection.
           Consumer<TaskController>(
             builder: (context, controller, child) {
               return TaskListSection(
@@ -103,13 +117,16 @@ class _TasksScreenState extends State<TasksScreen> {
               );
             },
           ),
-          SliverToBoxAdapter(
-            child: SizedBox(
-              height: 80.0,
-            ), // FloatingActionButton'un boyutu kadar boşluk
-          ),
+          SliverToBoxAdapter(child: SizedBox(height: 80.0)),
         ],
       ),
+      // Butonun stilini de koruyarak _navigateAndRefresh metodunu kullanıyoruz.
+      floatingActionButton: _buildStyledFloatingActionButton(
+        onPressed: () async {
+          await _navigateAndRefresh();
+        },
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }

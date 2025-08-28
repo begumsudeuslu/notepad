@@ -14,7 +14,13 @@ class CalendarAndControls extends StatelessWidget {
     // Takvimde kırmızı noktaların görünmesi için gerekli fonksiyon
     List<Task> getTasksForDay(DateTime day) {
       return controller.allTasks.where((task) {
-        return isSameDay(task.date, day);
+        final taskDay = DateTime(
+          task.date.year,
+          task.date.month,
+          task.date.day,
+        );
+        final compareDay = DateTime(day.year, day.month, day.day);
+        return taskDay == compareDay;
       }).toList();
     }
 
@@ -152,7 +158,6 @@ class CalendarAndControls extends StatelessWidget {
               ),
             ],
           ),
-          
         ],
       ),
     );
