@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:notepad/databases/database.dart';
+import '../services/account_service.dart';
 
 class AccountController extends ChangeNotifier {
+
+  final AccountService _accountService=AccountService();
+
   int _notesCount = 0;
   int _tasksCount = 0;
   int _completedTasksCount = 0;
@@ -13,7 +17,6 @@ class AccountController extends ChangeNotifier {
   int get completedTasksCount => _completedTasksCount;
   bool get enableNotifications => _enableNotifications;
 
-  //simülasyon
   Future<void> loadProductivityStats() async {
     final notes = await NotePadDatabase.instance.readAllNotes();
     final tasks = await NotePadDatabase.instance.readAllTask();
@@ -45,7 +48,10 @@ class AccountController extends ChangeNotifier {
 
   Future<void> deleteAccount() async  {
     try {
-      //await
+      await _accountService.deleteAccount();
+      resetStats();
+      _enableNotifications=true;
+      notifyListeners();
     } catch (e)  {
       rethrow;
     }

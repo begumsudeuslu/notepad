@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:notepad/controllers/account_controller.dart';
 import '../../controllers/auth_controller.dart';
 
 class AccountSettingsSection extends StatelessWidget {
   final AuthController auth;
+  final AccountController account;
   final void Function(BuildContext, AuthController) onUpdateAccountInfo;
+  final void Function(BuildContext, AccountController)? onDeleteAccount;
 
   const AccountSettingsSection({
     super.key,
     required this.auth,
+    required this.account,
     required this.onUpdateAccountInfo,
+    this.onDeleteAccount,
   });
 
   @override
@@ -40,6 +45,14 @@ class AccountSettingsSection extends StatelessWidget {
               onTap: () => onUpdateAccountInfo(context, auth),
               horizontalTitleGap: 10.0,
             ),
+            if (auth.email != 'misafir@example.com')
+              ListTile(
+                leading: const Icon(Icons.delete_forever, color: Colors.red),
+                title: const Text("Hesabı Sil"),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 18),
+                onTap: () => onDeleteAccount!(context, account),
+                horizontalTitleGap: 10.0,
+              ),
           ],
         ),
       ),

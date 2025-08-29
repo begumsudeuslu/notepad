@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:notepad/widgets/account_widgets/account_info_section.dart';
 import 'package:notepad/widgets/account_widgets/account_settings_section.dart';
@@ -330,6 +331,72 @@ class _AccountScreenState extends State<AccountScreen> {
     );
   }
 
+  void _deleteAccount(BuildContext context, AccountController account) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Hesabı Sil"),
+          content: const Text(
+            "Hesabınızı kalıcı olarak silmek istediğinize emin misiniz? Bu işlem geri alınamaz, notlarınız ve görevleriniz silinir.",
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text("İptal"),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              onPressed: () async {
+                try {
+                  await account.deleteAccount();
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Hesabınız başarıyla silindi."),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const LoginScreen(),
+                    ),
+                  );
+                } on FirebaseAuthException catch (e) {
+                  String message = 'Hesabu silerken bir hata oluştu';
+                  if (e.code == 'requires-recent-login') {
+                    message =
+                        'Güvenlik nedeniyle lütfen tekrar giriş yaptıktan sonra hesabınızı silin.';
+                  }
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(message),
+                      backgroundColor: Colors.redAccent,
+                    ),
+                  );
+                } catch (e) {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        "Hesap silinirken bir hata oluştu: ${e.toString()}",
+                      ),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              child: const Text("Sil"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthController>(context);
@@ -380,7 +447,9 @@ class _AccountScreenState extends State<AccountScreen> {
 
               AccountSettingsSection(
                 auth: auth,
+                account: account,
                 onUpdateAccountInfo: _updateAccountInfo,
+                onDeleteAccount: _deleteAccount,
               ),
 
               const SizedBox(height: 10),
