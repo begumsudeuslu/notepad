@@ -98,7 +98,7 @@ class _AccountScreenState extends State<AccountScreen> {
                 TextFormField(
                   initialValue: auth.username,
                   decoration: const InputDecoration(
-                    labelText: "Yeni Kullanıcı Adı",
+                    labelText: "Kullanıcı Adı",
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.person, color: Color(0xFFC3A5DE)),
                   ),
