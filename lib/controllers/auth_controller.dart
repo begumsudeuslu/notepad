@@ -23,7 +23,7 @@ class AuthController extends ChangeNotifier {
       _email = user?.email ?? email;
       notifyListeners();
     } catch (e) {
-      throw Exception(e);
+      rethrow;
     }
   }
 
@@ -35,11 +35,12 @@ class AuthController extends ChangeNotifier {
       _email = email;
       notifyListeners();
     } catch (e) {
-      throw Exception(e);
+      rethrow;
     }
   }
 
-  void logout() {
+  Future<void> logout() async {
+    await _authService.signOut();
     _isLoggedIn = false;
     _username = "Misafir Kullanıcı";
     _email = "misafir@example.com";
@@ -55,10 +56,10 @@ class AuthController extends ChangeNotifier {
   }
 
   Future<void> resetPassword(String email) async {
-    await Future.delayed(const Duration(seconds: 1));
     if (email.isEmpty) {
       throw Exception("Lütfen e-posta adresinizi girin.");
     }
+    await _authService.resetPassword(email);
   }
 
   Future<void> changePassword(String oldPassword, String newPassword) async {
@@ -67,12 +68,17 @@ class AuthController extends ChangeNotifier {
     if (oldPassword != _password) {
       throw Exception("Mevcut şifreniz yanlış.");
     }
-
     if (newPassword.length < 6) {
       throw Exception("Şifre en az 6 karakter olmalı.");
     }
-
     _password = newPassword;
+    notifyListeners();
+  }
+
+  void guestLogIn() {
+    _isLoggedIn = true;
+    _username = "Misafir Kullanıcı";
+    _email = "misafir@example.com";
     notifyListeners();
   }
 }

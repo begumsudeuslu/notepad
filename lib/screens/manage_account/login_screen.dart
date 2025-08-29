@@ -18,7 +18,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
 
-  // Giriş işlemini simüle eder.
+  // signin
   void _handleLogin() async {
     setState(() {
       _isLoading = true;
@@ -31,22 +31,28 @@ class _LoginScreenState extends State<LoginScreen> {
       ).login(_emailController.text, _passwordController.text);
 
       ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Giriş işlemi başarılı!"), // Mesajı güncelledim
-        backgroundColor: Colors.green,
-      ),
-    );
-
-      Navigator.pop(context);
-     } on FirebaseAuthException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString()), // Hata mesajını gösteriyoruz
-          backgroundColor: Colors.redAccent,
+        const SnackBar(
+          content: Text("Giriş işlemi başarılı!"),
+          backgroundColor: Colors.green,
         ),
       );
 
-      } catch (e) {
+      Navigator.pop(context);
+    } on FirebaseAuthException catch (e) {
+      String message = "Giriş sırasında bir hata oluştu. (firebase)";
+
+      if (e.code == 'user-not-found') {
+        message = "Bu e-posta adresine ait bir kullanıcı bulunamadı.";
+      } else if (e.code == 'wrong-password') {
+        message = "Yanlış şifre. Lütfen tekrar deneyin.";
+      } else if (e.code == 'invalid-email') {
+        message = "Lütfen geçerli bir e-posta adresi girin.";
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message), backgroundColor: Colors.redAccent),
+      );
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(e.toString()),
@@ -189,6 +195,24 @@ class _LoginScreenState extends State<LoginScreen> {
               onPressed: _goToRegister,
               child: const Text(
                 "Hesabın yok mu? Kayıt ol",
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 1),
+            TextButton(
+              onPressed: () {
+                Provider.of<AuthController>(
+                  context,
+                  listen: false,
+                ).guestLogIn();
+                Navigator.pop(context);
+              },
+              child: const Text(
+                "Misafir kullanıcı olarak devam et",
                 style: TextStyle(
                   color: Colors.black,
                   fontWeight: FontWeight.bold,
