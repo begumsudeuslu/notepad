@@ -8,7 +8,7 @@ plugins {
 android {
     namespace = "com.example.notepad"
     compileSdk = 34 // Flutter compileSdkVersion ile aynı olmalı
-    ndkVersion = "25.1.8937393" // Flutter ndkVersion ile aynı olmalı
+    ndkVersion = "27.0.12077973" // Flutter ndkVersion ile aynı olmalı
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
