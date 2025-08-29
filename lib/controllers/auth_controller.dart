@@ -62,19 +62,6 @@ class AuthController extends ChangeNotifier {
     await _authService.resetPassword(email);
   }
 
-  Future<void> changePassword(String oldPassword, String newPassword) async {
-    await Future.delayed(const Duration(seconds: 1));
-
-    if (oldPassword != _password) {
-      throw Exception("Mevcut şifreniz yanlış.");
-    }
-    if (newPassword.length < 6) {
-      throw Exception("Şifre en az 6 karakter olmalı.");
-    }
-    _password = newPassword;
-    notifyListeners();
-  }
-
   void guestLogIn() {
     _isLoggedIn = true;
     _username = "Misafir Kullanıcı";

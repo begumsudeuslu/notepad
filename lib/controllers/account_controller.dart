@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:notepad/databases/database.dart';
@@ -52,6 +53,17 @@ class AccountController extends ChangeNotifier {
       resetStats();
       _enableNotifications=true;
       notifyListeners();
+    } catch (e)  {
+      rethrow;
+    }
+  }
+
+  Future<void> changePassword(String oldPassword, String newPassword) async {
+    try{
+      await _accountService.changePassword(oldPassword, newPassword);
+      notifyListeners();
+    } on FirebaseAuthException catch (e)  {
+      rethrow;
     } catch (e)  {
       rethrow;
     }

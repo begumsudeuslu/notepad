@@ -136,14 +136,11 @@ class _AccountScreenState extends State<AccountScreen> {
   }
 
   // şifre değiştirme
-  void _changePassword(BuildContext context, AuthController auth) {
+  void _changePassword(BuildContext context, AccountController account) {
     final formKey = GlobalKey<FormState>();
     final oldPasswordController = TextEditingController();
     final newPasswordController = TextEditingController();
     final confirmPasswordController = TextEditingController();
-
-    //normalde database'den alınmalı
-    const String correctOldPassword = "123";
 
     showDialog(
       context: context,
@@ -171,10 +168,6 @@ class _AccountScreenState extends State<AccountScreen> {
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return "Lütfen mevcut şifrenizi girin.";
-                      }
-                      // sadece simülasyon
-                      if (value != correctOldPassword) {
-                        return "Mevcut şifreniz yanlış.";
                       }
                       return null;
                     },
@@ -245,10 +238,8 @@ class _AccountScreenState extends State<AccountScreen> {
               ),
               onPressed: () async {
                 if (formKey.currentState!.validate()) {
-                  // şifreyi başarıyla değiştirdiği simülasyon
-
                   try {
-                    await auth.changePassword(
+                    await account.changePassword(
                       oldPasswordController.text,
                       newPasswordController.text,
                     );
@@ -259,10 +250,26 @@ class _AccountScreenState extends State<AccountScreen> {
                         backgroundColor: Colors.green,
                       ),
                     ); // database güncellenmeli
+                  } on FirebaseAuthException catch (e) {
+                    String message = "Şifre değiştirilemedi.";
+                    if (e.code == 'invalid-credential') {
+                      message = "Mevcut şifre yanlış.";
+                    } else if (e.code == 'weak-password') {
+                      message = "Yeni şifre çok zayıf.";
+                    } else if (e.code == 'requires-recent-login') {
+                      message =
+                          "Güvenlik için lütfen tekrar giriş yaptıktan sonra deneyin.";
+                    }
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(message),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
                   } catch (e) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(e.toString()),
+                        content: Text("Hata: ${e.toString()}"),
                         backgroundColor: Colors.red,
                       ),
                     );
@@ -366,10 +373,12 @@ class _AccountScreenState extends State<AccountScreen> {
                     ),
                   );
                 } on FirebaseAuthException catch (e) {
-                  String message = 'Hesabu silerken bir hata oluştu';
+                  String message = 'Hesabı silerken bir hata oluştu';
                   if (e.code == 'requires-recent-login') {
                     message =
                         'Güvenlik nedeniyle lütfen tekrar giriş yaptıktan sonra hesabınızı silin.';
+                  } else if (e.code == 'wrong-password') {
+                    message = 'Şifreniz yanlış.';
                   }
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -455,7 +464,7 @@ class _AccountScreenState extends State<AccountScreen> {
               const SizedBox(height: 10),
 
               ChangePasswordSection(
-                auth: auth,
+                account: account,
                 onChangePassword: _changePassword,
               ),
 
