@@ -146,158 +146,162 @@ class _AccountScreenState extends State<AccountScreen> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Şifre Değiştir"),
-          content: SingleChildScrollView(
-            child: Form(
-              key: formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextFormField(
-                    controller: oldPasswordController,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: "Mevcut Şifre",
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.lock_outline),
-                      contentPadding: EdgeInsets.symmetric(
-                        vertical: 12,
-                        horizontal: 16,
-                      ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "Lütfen mevcut şifrenizi girin.";
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 15),
-                  TextFormField(
-                    controller: newPasswordController,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: "Yeni Şifre",
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.lock),
-                      contentPadding: EdgeInsets.symmetric(
-                        vertical: 12,
-                        horizontal: 16,
-                      ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "Lütfen yeni şifrenizi girin.";
-                      }
-                      if (value.length < 6) {
-                        return "Şifre en az 6 karakter olmalı.";
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 10),
-                  TextFormField(
-                    controller: confirmPasswordController,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: "Yeni Şifreyi Doğrula",
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.lock_person),
-                      contentPadding: EdgeInsets.symmetric(
-                        vertical: 12,
-                        horizontal: 16,
-                      ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "Lütfen yeni şifrenizi tekrar girin.";
-                      }
-                      if (value != newPasswordController.text) {
-                        return "Şifreler uyuşmuyor.";
-                      }
-                      return null;
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              style: TextButton.styleFrom(
-                foregroundColor: const Color.fromARGB(255, 166, 128, 199),
-              ),
-              child: const Text("İptal"),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color.fromARGB(255, 166, 128, 199),
-              ),
-              onPressed: _isLoading
-                  ? null
-                  : () async {
-                      if (formKey.currentState!.validate()) {
-                        setState(() {
-                          _isLoading = true;
-                        });
-                        try {
-                          await account.changePassword(
-                            oldPasswordController.text,
-                            newPasswordController.text,
-                          );
-                          Navigator.of(context).pop();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Şifreniz başarıyla değiştirildi!"),
-                              backgroundColor: Colors.green,
-                            ),
-                          ); // database güncellenmeli
-                        } on FirebaseAuthException catch (e) {
-                          String message = "Şifre değiştirilemedi.";
-                          if (e.code == 'invalid-credential') {
-                            message = "Mevcut şifre yanlış.";
-                          } else if (e.code == 'weak-password') {
-                            message = "Yeni şifre çok zayıf.";
-                          } else if (e.code == 'requires-recent-login') {
-                            message =
-                                "Güvenlik için lütfen tekrar giriş yaptıktan sonra deneyin.";
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text("Şifre Değiştir"),
+              content: SingleChildScrollView(
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextFormField(
+                        controller: oldPasswordController,
+                        obscureText: true,
+                        decoration: const InputDecoration(
+                          labelText: "Mevcut Şifre",
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.lock_outline),
+                          contentPadding: EdgeInsets.symmetric(
+                            vertical: 12,
+                            horizontal: 16,
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Lütfen mevcut şifrenizi girin.";
                           }
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(message),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
-                        } catch (e) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text("Hata: ${e.toString()}"),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
-                        } finally {
-                          setState(() {
-                            _isLoading = false;
-                          });
-                        }
-                      }
-                    },
-              child: _isLoading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
+                          return null;
+                        },
                       ),
-                    )
-                  : const Text("Kaydet"),
-            ),
-          ],
+                      const SizedBox(height: 15),
+                      TextFormField(
+                        controller: newPasswordController,
+                        obscureText: true,
+                        decoration: const InputDecoration(
+                          labelText: "Yeni Şifre",
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.lock),
+                          contentPadding: EdgeInsets.symmetric(
+                            vertical: 12,
+                            horizontal: 16,
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Lütfen yeni şifrenizi girin.";
+                          }
+                          if (value.length < 6) {
+                            return "Şifre en az 6 karakter olmalı.";
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 10),
+                      TextFormField(
+                        controller: confirmPasswordController,
+                        obscureText: true,
+                        decoration: const InputDecoration(
+                          labelText: "Yeni Şifreyi Doğrula",
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.lock_person),
+                          contentPadding: EdgeInsets.symmetric(
+                            vertical: 12,
+                            horizontal: 16,
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Lütfen yeni şifrenizi tekrar girin.";
+                          }
+                          if (value != newPasswordController.text) {
+                            return "Şifreler uyuşmuyor.";
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: const Color.fromARGB(255, 166, 128, 199),
+                  ),
+                  child: const Text("İptal"),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color.fromARGB(255, 166, 128, 199),
+                  ),
+                  onPressed: _isLoading
+                      ? null
+                      : () async {
+                          if (formKey.currentState!.validate()) {
+                            setState(() {
+                              _isLoading = true;
+                            });
+                            try {
+                              await account.changePassword(
+                                oldPasswordController.text,
+                                newPasswordController.text,
+                              );
+                              Navigator.of(context).pop();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Şifreniz başarıyla değiştirildi!"),
+                                  backgroundColor: Colors.green,
+                                ),
+                              ); // database güncellenmeli
+                            } on FirebaseAuthException catch (e) {
+                              String message = "Şifre değiştirilemedi.";
+                              if (e.code == 'invalid-credential') {
+                                message = "Mevcut şifre yanlış.";
+                              } else if (e.code == 'weak-password') {
+                                message = "Yeni şifre çok zayıf.";
+                              } else if (e.code == 'requires-recent-login') {
+                                message =
+                                    "Güvenlik için lütfen tekrar giriş yaptıktan sonra deneyin.";
+                              }
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(message),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text("Hata: ${e.toString()}"),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            } finally {
+                              setState(() {
+                                _isLoading = false;
+                              });
+                            }
+                          }
+                        },
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text("Kaydet"),
+                ),
+              ],
+            );
+          },
         );
       },
     );
