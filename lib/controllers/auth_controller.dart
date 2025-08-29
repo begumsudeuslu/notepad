@@ -9,7 +9,6 @@ class AuthController extends ChangeNotifier {
   bool _isLoggedIn = false;
   String _username = "Misafir Kullanıcı";
   String _email = "misafir@example.com";
-  String _password = "123456";
 
   bool get isLoggedIn => _isLoggedIn;
   String get username => _username;
@@ -19,8 +18,8 @@ class AuthController extends ChangeNotifier {
     try {
       User? user = await _authService.signIn(email, password);
       _isLoggedIn = true;
-      _username = user?.displayName ?? username;
-      _email = user?.email ?? email;
+      _username = user?.displayName ?? "Misafir Kullanıcı";
+      _email = user?.email ?? "misafir@example.com";
       notifyListeners();
     } catch (e) {
       rethrow;

@@ -26,6 +26,7 @@ class AccountScreen extends StatefulWidget {
 class _AccountScreenState extends State<AccountScreen> {
   // ilk olarak giriş yapılmadığını varsayalım
   bool _isLoggedIn = false;
+  bool _isLoading = false;
   bool _enableNotifications = true;
 
   String _username = "Misafir Kullanıcı";
@@ -236,47 +237,65 @@ class _AccountScreenState extends State<AccountScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color.fromARGB(255, 166, 128, 199),
               ),
-              onPressed: () async {
-                if (formKey.currentState!.validate()) {
-                  try {
-                    await account.changePassword(
-                      oldPasswordController.text,
-                      newPasswordController.text,
-                    );
-                    Navigator.of(context).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Şifreniz başarıyla değiştirildi!"),
-                        backgroundColor: Colors.green,
+              onPressed: _isLoading
+                  ? null
+                  : () async {
+                      if (formKey.currentState!.validate()) {
+                        setState(() {
+                          _isLoading = true;
+                        });
+                        try {
+                          await account.changePassword(
+                            oldPasswordController.text,
+                            newPasswordController.text,
+                          );
+                          Navigator.of(context).pop();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Şifreniz başarıyla değiştirildi!"),
+                              backgroundColor: Colors.green,
+                            ),
+                          ); // database güncellenmeli
+                        } on FirebaseAuthException catch (e) {
+                          String message = "Şifre değiştirilemedi.";
+                          if (e.code == 'invalid-credential') {
+                            message = "Mevcut şifre yanlış.";
+                          } else if (e.code == 'weak-password') {
+                            message = "Yeni şifre çok zayıf.";
+                          } else if (e.code == 'requires-recent-login') {
+                            message =
+                                "Güvenlik için lütfen tekrar giriş yaptıktan sonra deneyin.";
+                          }
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(message),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text("Hata: ${e.toString()}"),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        } finally {
+                          setState(() {
+                            _isLoading = false;
+                          });
+                        }
+                      }
+                    },
+              child: _isLoading
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
                       ),
-                    ); // database güncellenmeli
-                  } on FirebaseAuthException catch (e) {
-                    String message = "Şifre değiştirilemedi.";
-                    if (e.code == 'invalid-credential') {
-                      message = "Mevcut şifre yanlış.";
-                    } else if (e.code == 'weak-password') {
-                      message = "Yeni şifre çok zayıf.";
-                    } else if (e.code == 'requires-recent-login') {
-                      message =
-                          "Güvenlik için lütfen tekrar giriş yaptıktan sonra deneyin.";
-                    }
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(message),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text("Hata: ${e.toString()}"),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                }
-              },
-              child: const Text("Kaydet"),
+                    )
+                  : const Text("Kaydet"),
             ),
           ],
         );
