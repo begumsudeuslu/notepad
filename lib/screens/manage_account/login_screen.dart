@@ -31,7 +31,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Giriş işlemi başarılı (simülasyon)"),
+          content: Text("Giriş işlemi başarılı"),
           backgroundColor: Colors.green,
         ),
       );

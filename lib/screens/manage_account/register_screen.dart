@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:notepad/controllers/auth_controller.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -16,7 +17,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
 
-  // simüle eden function
   void _handleRegister() async {
     setState(() {
       _isLoading = true;
@@ -29,16 +29,36 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _passwordController.text,
       );
 
+      // Kayıt başarılıysa, otomatik olarak giriş yapmış olur.
+      // Firebase'in akışını (stream) dinleyen widgetlar, ana ekrana yönlendirme yapar.
+    } on FirebaseAuthException catch (e) {
+      String errorMessage;
+      switch (e.code) {
+        case 'email-already-in-use':
+          errorMessage = 'Bu e-posta adresi zaten kullanılıyor.';
+          break;
+        case 'invalid-email':
+          errorMessage = 'Geçersiz bir e-posta adresi girdiniz.';
+          break;
+        case 'weak-password':
+          errorMessage = 'Girdiğiniz şifre çok zayıf.';
+          break;
+        default:
+          // Kendi özel hatalarınızı burada yakalayın
+          errorMessage = e.message ?? "Kayıt sırasında bir hata oluştu.";
+          break;
+      }
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Kayıt işlemi başarılı (simülasyon)"),
-          backgroundColor: Colors.green,
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.redAccent,
         ),
       );
     } catch (e) {
+      // AuthController'dan fırlatılan özel hata mesajını yakalar ve gösterir
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(e.toString()),
+          content: Text(e.toString().replaceAll("Exception: ", "")),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -47,8 +67,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _isLoading = false;
       });
     }
-
-    Navigator.pop(context);
   }
 
   @override
@@ -67,8 +85,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           'Kayıt Ol ',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
-        // AppBar rengini tatlı mor yapıyoruz
-        backgroundColor: Color.fromARGB(255, 166, 128, 199),
+        backgroundColor: const Color.fromARGB(255, 166, 128, 199),
         centerTitle: true,
         elevation: 0,
         shape: const RoundedRectangleBorder(
@@ -86,7 +103,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
               color: Color(0xFFC3A5DE),
             ),
             const SizedBox(height: 10),
-
             const Text(
               'Yeni Hesap Oluştur',
               textAlign: TextAlign.center,
@@ -96,16 +112,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 color: Color(0xFFC3A5DE),
               ),
             ),
-
             const SizedBox(height: 20),
-
-            // Kullanıcı Adı Girişi
             TextField(
               controller: _usernameController,
               decoration: InputDecoration(
                 labelText: 'Kullanıcı Adı',
                 hintText: 'örn: mustafa_2024',
-                border: OutlineInputBorder(
+                border: const OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(10)),
                 ),
                 focusedBorder: OutlineInputBorder(
@@ -115,22 +128,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     width: 2.0,
                   ),
                 ),
-                prefixIcon: Icon(
+                prefixIcon: const Icon(
                   Icons.person,
                   color: Color.fromARGB(255, 173, 134, 207),
                 ),
               ),
             ),
-
             const SizedBox(height: 15),
-
-            // E-posta Girişi
             TextField(
               controller: _emailController,
               decoration: InputDecoration(
                 labelText: 'E-posta',
                 hintText: 'ornek@mail.com',
-                border: OutlineInputBorder(
+                border: const OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(10)),
                 ),
                 focusedBorder: OutlineInputBorder(
@@ -140,22 +150,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     width: 2.0,
                   ),
                 ),
-                prefixIcon: Icon(
+                prefixIcon: const Icon(
                   Icons.email,
                   color: Color.fromARGB(255, 173, 134, 207),
                 ),
               ),
               keyboardType: TextInputType.emailAddress,
             ),
-
             const SizedBox(height: 15),
-
-            // Şifre Girişi
             TextField(
               controller: _passwordController,
               decoration: InputDecoration(
                 labelText: 'Şifre',
-                border: OutlineInputBorder(
+                border: const OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(10)),
                 ),
                 focusedBorder: OutlineInputBorder(
@@ -165,21 +172,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     width: 2.0,
                   ),
                 ),
-                prefixIcon: Icon(
+                prefixIcon: const Icon(
                   Icons.lock,
                   color: Color.fromARGB(255, 173, 134, 207),
                 ),
               ),
               obscureText: true,
             ),
-
             const SizedBox(height: 20),
-
-            // Kayıt Ol Butonu
             ElevatedButton(
               onPressed: _isLoading ? null : _handleRegister,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color.fromARGB(255, 173, 134, 207),
+                backgroundColor: const Color.fromARGB(255, 173, 134, 207),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 15),
                 shape: RoundedRectangleBorder(

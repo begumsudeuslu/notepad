@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:notepad/controllers/account_controller.dart';
 import 'package:provider/provider.dart';
 import 'screens/home_screen.dart';
-import 'package:notepad/databases/database.dart';
 import 'controllers/note_controller.dart';
 import 'controllers/task_controller.dart';
 import 'controllers/auth_controller.dart';
-import 'controllers/account_controller.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // veritabanını sıfırla
   //await NotePadDatabase.instance.resetDatabase();
