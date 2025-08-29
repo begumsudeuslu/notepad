@@ -7,9 +7,16 @@ import 'controllers/note_controller.dart';
 import 'controllers/task_controller.dart';
 import 'controllers/auth_controller.dart';
 import 'controllers/account_controller.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   // veritabanını sıfırla
   //await NotePadDatabase.instance.resetDatabase();
