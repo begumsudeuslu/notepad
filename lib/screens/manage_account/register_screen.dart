@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:notepad/controllers/auth_controller.dart';
 import 'package:provider/provider.dart';
@@ -30,11 +31,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Kayıt işlemi başarılı (simülasyon)"),
-          backgroundColor: Colors.green,
+      const SnackBar(
+        content: Text("Kayıt işlemi başarılı!"), // Mesajı güncelledim
+        backgroundColor: Colors.green,
+      ),
+    );
+
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()), // Hata mesajını gösteriyoruz
+          backgroundColor: Colors.redAccent,
         ),
       );
+
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

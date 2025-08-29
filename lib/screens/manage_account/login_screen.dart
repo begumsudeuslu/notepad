@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'register_screen.dart';
 import 'forgot_password_screen.dart';
 import '../../controllers/auth_controller.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -30,14 +31,22 @@ class _LoginScreenState extends State<LoginScreen> {
       ).login(_emailController.text, _passwordController.text);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Giriş işlemi başarılı (simülasyon)"),
-          backgroundColor: Colors.green,
+      const SnackBar(
+        content: Text("Giriş işlemi başarılı!"), // Mesajı güncelledim
+        backgroundColor: Colors.green,
+      ),
+    );
+
+      Navigator.pop(context);
+     } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()), // Hata mesajını gösteriyoruz
+          backgroundColor: Colors.redAccent,
         ),
       );
 
-      Navigator.pop(context);
-    } catch (e) {
+      } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(e.toString()),

@@ -1,6 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:notepad/services/auth_service.dart';
 
 class AuthController extends ChangeNotifier {
+  final AuthService _authService = AuthService();
+
   // şimdilik private variables olarak kalsınlar
   bool _isLoggedIn = false;
   String _username = "Misafir Kullanıcı";
@@ -12,28 +16,26 @@ class AuthController extends ChangeNotifier {
   String get email => _email;
 
   Future<void> login(String email, String password) async {
-    // normalde burada api çağrısıyla database atraması yapılır
-    await Future.delayed(const Duration(seconds: 1));
-
-    if (email.isEmpty || password.isEmpty) {
-      throw Exception("Lütfen tüm alanları doldurun.");
-    }
-
-    if (email == 'flutterserver@example.com' && password == '123456') {
+    try {
+      User? user = await _authService.signIn(email, password);
       _isLoggedIn = true;
-      _username = "Flutter Server";
-      _email = email;
-      notifyListeners(); //arayüz güncellemesi
-    } else {
-      throw Exception("E-posta veya şifre hatalı.");
+      _username = user?.displayName ?? username;
+      _email = user?.email ?? email;
+      notifyListeners();
+    } catch (e) {
+      throw Exception(e);
     }
   }
 
-  Future<void> register(String username, String mail, String password) async {
-    await Future.delayed(const Duration(seconds: 1));
-
-    if (username.isEmpty || mail.isEmpty || password.isEmpty) {
-      throw Exception("Lütfen tüm alanları doldurun.");
+  Future<void> register(String username, String email, String password) async {
+    try {
+      User? user = await _authService.register(username, email, password);
+      _isLoggedIn = true;
+      _username = username;
+      _email = email;
+      notifyListeners();
+    } catch (e) {
+      throw Exception(e);
     }
   }
 

@@ -6,7 +6,6 @@ import 'package:notepad/databases/database.dart';
 import 'controllers/note_controller.dart';
 import 'controllers/task_controller.dart';
 import 'controllers/auth_controller.dart';
-import 'controllers/account_controller.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
