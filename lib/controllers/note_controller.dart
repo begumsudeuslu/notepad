@@ -107,7 +107,7 @@ class NoteController extends ChangeNotifier {
   }
 
   Future<void> updateNote(Note note) async {
-  await NotePadDatabase.instance.updateNote(note); // Burada .update() çağrısı yapıyoruz
+  await NotePadDatabase.instance.updateNote(note);
   await refreshNotes();
 }
 

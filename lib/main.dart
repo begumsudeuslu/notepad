@@ -8,14 +8,14 @@ import 'controllers/task_controller.dart';
 import 'controllers/auth_controller.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'package:notepad/respositories/auth_repository.dart';
+import 'package:notepad/respositories/auth_reposiroy_imp.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // veritabanını sıfırla
   //await NotePadDatabase.instance.resetDatabase();
@@ -32,7 +32,9 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (context) => NoteController()),
         ChangeNotifierProvider(create: (context) => TaskController()),
-        ChangeNotifierProvider(create: (context) => AuthController()),
+        ChangeNotifierProvider(
+          create: (context) => AuthController(AuthReposiroyImp()),
+        ),
         ChangeNotifierProvider(create: (context) => AccountController()),
       ],
       child: MaterialApp(

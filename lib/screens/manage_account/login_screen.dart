@@ -43,7 +43,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (e.code == 'user-not-found') {
         message = "Bu e-posta adresine ait bir kullanıcı bulunamadı.";
-      } else if (e.code == 'wrong-password') {
+      } else if (e.code == 'wrong-password' || e.code == 'invalid-credential') {
         message = "Yanlış şifre. Lütfen tekrar deneyin.";
       } else if (e.code == 'invalid-email') {
         message = "Lütfen geçerli bir e-posta adresi girin.";

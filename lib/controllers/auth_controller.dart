@@ -1,9 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:notepad/services/auth_service.dart';
+import '../respositories/auth_repository.dart';
 
 class AuthController extends ChangeNotifier {
-  final AuthService _authService = AuthService();
+
+  final IAuthRepository _authRepository;
+  AuthController(this._authRepository);
 
   // şimdilik private variables olarak kalsınlar
   bool _isLoggedIn = false;
@@ -16,7 +19,7 @@ class AuthController extends ChangeNotifier {
 
   Future<void> login(String email, String password) async {
     try {
-      User? user = await _authService.signIn(email, password);
+      User? user = await _authRepository.signIn(email, password);
       _isLoggedIn = true;
       _username = user?.displayName ?? "Misafir Kullanıcı";
       _email = user?.email ?? "misafir@example.com";
@@ -28,7 +31,7 @@ class AuthController extends ChangeNotifier {
 
   Future<void> register(String username, String email, String password) async {
     try {
-      User? user = await _authService.register(username, email, password);
+      User? user = await _authRepository.register(username, email, password);
       _isLoggedIn = true;
       _username = username;
       _email = email;
@@ -39,7 +42,7 @@ class AuthController extends ChangeNotifier {
   }
 
   Future<void> logout() async {
-    await _authService.signOut();
+    await _authRepository.signOut();
     _isLoggedIn = false;
     _username = "Misafir Kullanıcı";
     _email = "misafir@example.com";
@@ -58,7 +61,7 @@ class AuthController extends ChangeNotifier {
     if (email.isEmpty) {
       throw Exception("Lütfen e-posta adresinizi girin.");
     }
-    await _authService.resetPassword(email);
+    await _authRepository.resetPassword(email);
   }
 
   void guestLogIn() {
