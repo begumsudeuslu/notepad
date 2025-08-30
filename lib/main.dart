@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:notepad/controllers/account_controller.dart';
+import 'package:notepad/respositories/account_repository_imp.dart';
 import 'package:provider/provider.dart';
 import 'screens/home_screen.dart';
 import 'package:notepad/databases/database.dart';
@@ -8,7 +9,6 @@ import 'controllers/task_controller.dart';
 import 'controllers/auth_controller.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'package:notepad/respositories/auth_repository.dart';
 import 'package:notepad/respositories/auth_reposiroy_imp.dart';
 
 void main() async {
@@ -35,7 +35,9 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (context) => AuthController(AuthReposiroyImp()),
         ),
-        ChangeNotifierProvider(create: (context) => AccountController()),
+        ChangeNotifierProvider(
+          create: (context) => AccountController(AccountRepositoryImp()),
+        ),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

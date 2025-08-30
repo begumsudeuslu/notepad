@@ -2,11 +2,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:notepad/databases/database.dart';
-import '../services/account_service.dart';
+import '../respositories/account_repository.dart';
 
 class AccountController extends ChangeNotifier {
 
-  final AccountService _accountService=AccountService();
+  final IAccountRepository _accountRepository;
+  AccountController(this._accountRepository);
 
   int _notesCount = 0;
   int _tasksCount = 0;
@@ -49,7 +50,7 @@ class AccountController extends ChangeNotifier {
 
   Future<void> deleteAccount() async  {
     try {
-      await _accountService.deleteAccount();
+      await _accountRepository.deleteAccount();
       resetStats();
       _enableNotifications=true;
       notifyListeners();
@@ -60,7 +61,7 @@ class AccountController extends ChangeNotifier {
 
   Future<void> changePassword(String oldPassword, String newPassword) async {
     try{
-      await _accountService.changePassword(oldPassword, newPassword);
+      await _accountRepository.changePassword(oldPassword, newPassword);
       notifyListeners();
     } on FirebaseAuthException catch (e)  {
       rethrow;

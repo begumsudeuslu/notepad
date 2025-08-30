@@ -1,6 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:notepad/services/auth_service.dart';
 import '../respositories/auth_repository.dart';
 
 class AuthController extends ChangeNotifier {
