@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import '../../controllers/auth_controller.dart';
+import 'package:notepad/controllers/account_controller.dart';
 
 class ChangePasswordSection extends StatelessWidget{
-  final AuthController auth;
-  final void Function(BuildContext, AuthController) onChangePassword;
+  final AccountController account;
+  final void Function(BuildContext, AccountController) onChangePassword;
 
   const ChangePasswordSection({
     super.key,
-    required this.auth,
+    required this.account,
     required this.onChangePassword,
   });
 
@@ -40,7 +40,7 @@ class ChangePasswordSection extends StatelessWidget{
               ),
               title: const Text("Şifreyi değiştir"),
               trailing: const Icon(Icons.arrow_forward_ios, size: 18),
-              onTap: () => onChangePassword(context, auth),
+              onTap: () => onChangePassword(context, account),
               horizontalTitleGap: 10.0,
             ),
           ],

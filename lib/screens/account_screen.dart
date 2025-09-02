@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:notepad/widgets/account_widgets/account_info_section.dart';
 import 'package:notepad/widgets/account_widgets/account_settings_section.dart';
@@ -25,6 +26,7 @@ class AccountScreen extends StatefulWidget {
 class _AccountScreenState extends State<AccountScreen> {
   // ilk olarak giriş yapılmadığını varsayalım
   bool _isLoggedIn = false;
+  bool _isLoading = false;
   bool _enableNotifications = true;
 
   String _username = "Misafir Kullanıcı";
@@ -98,7 +100,7 @@ class _AccountScreenState extends State<AccountScreen> {
                 TextFormField(
                   initialValue: auth.username,
                   decoration: const InputDecoration(
-                    labelText: "Yeni Kullanıcı Adı",
+                    labelText: "Kullanıcı Adı",
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.person, color: Color(0xFFC3A5DE)),
                   ),
@@ -135,142 +137,171 @@ class _AccountScreenState extends State<AccountScreen> {
   }
 
   // şifre değiştirme
-  void _changePassword(BuildContext context, AuthController auth) {
+  void _changePassword(BuildContext context, AccountController account) {
     final formKey = GlobalKey<FormState>();
     final oldPasswordController = TextEditingController();
     final newPasswordController = TextEditingController();
     final confirmPasswordController = TextEditingController();
 
-    //normalde database'den alınmalı
-    const String correctOldPassword = "123";
-
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Şifre Değiştir"),
-          content: SingleChildScrollView(
-            child: Form(
-              key: formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextFormField(
-                    controller: oldPasswordController,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: "Mevcut Şifre",
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.lock_outline),
-                      contentPadding: EdgeInsets.symmetric(
-                        vertical: 12,
-                        horizontal: 16,
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text("Şifre Değiştir"),
+              content: SingleChildScrollView(
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextFormField(
+                        controller: oldPasswordController,
+                        obscureText: true,
+                        decoration: const InputDecoration(
+                          labelText: "Mevcut Şifre",
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.lock_outline),
+                          contentPadding: EdgeInsets.symmetric(
+                            vertical: 12,
+                            horizontal: 16,
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Lütfen mevcut şifrenizi girin.";
+                          }
+                          return null;
+                        },
                       ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "Lütfen mevcut şifrenizi girin.";
-                      }
-                      // sadece simülasyon
-                      if (value != correctOldPassword) {
-                        return "Mevcut şifreniz yanlış.";
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 15),
-                  TextFormField(
-                    controller: newPasswordController,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: "Yeni Şifre",
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.lock),
-                      contentPadding: EdgeInsets.symmetric(
-                        vertical: 12,
-                        horizontal: 16,
+                      const SizedBox(height: 15),
+                      TextFormField(
+                        controller: newPasswordController,
+                        obscureText: true,
+                        decoration: const InputDecoration(
+                          labelText: "Yeni Şifre",
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.lock),
+                          contentPadding: EdgeInsets.symmetric(
+                            vertical: 12,
+                            horizontal: 16,
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Lütfen yeni şifrenizi girin.";
+                          }
+                          if (value.length < 6) {
+                            return "Şifre en az 6 karakter olmalı.";
+                          }
+                          return null;
+                        },
                       ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "Lütfen yeni şifrenizi girin.";
-                      }
-                      if (value.length < 6) {
-                        return "Şifre en az 6 karakter olmalı.";
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 10),
-                  TextFormField(
-                    controller: confirmPasswordController,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: "Yeni Şifreyi Doğrula",
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.lock_person),
-                      contentPadding: EdgeInsets.symmetric(
-                        vertical: 12,
-                        horizontal: 16,
+                      const SizedBox(height: 10),
+                      TextFormField(
+                        controller: confirmPasswordController,
+                        obscureText: true,
+                        decoration: const InputDecoration(
+                          labelText: "Yeni Şifreyi Doğrula",
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.lock_person),
+                          contentPadding: EdgeInsets.symmetric(
+                            vertical: 12,
+                            horizontal: 16,
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Lütfen yeni şifrenizi tekrar girin.";
+                          }
+                          if (value != newPasswordController.text) {
+                            return "Şifreler uyuşmuyor.";
+                          }
+                          return null;
+                        },
                       ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "Lütfen yeni şifrenizi tekrar girin.";
-                      }
-                      if (value != newPasswordController.text) {
-                        return "Şifreler uyuşmuyor.";
-                      }
-                      return null;
-                    },
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              style: TextButton.styleFrom(
-                foregroundColor: const Color.fromARGB(255, 166, 128, 199),
-              ),
-              child: const Text("İptal"),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color.fromARGB(255, 166, 128, 199),
-              ),
-              onPressed: () async {
-                if (formKey.currentState!.validate()) {
-                  // şifreyi başarıyla değiştirdiği simülasyon
-
-                  try {
-                    await auth.changePassword(
-                      oldPasswordController.text,
-                      newPasswordController.text,
-                    );
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
                     Navigator.of(context).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Şifreniz başarıyla değiştirildi!"),
-                        backgroundColor: Colors.green,
-                      ),
-                    ); // database güncellenmeli
-                  } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(e.toString()),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                }
-              },
-              child: const Text("Kaydet"),
-            ),
-          ],
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: const Color.fromARGB(255, 166, 128, 199),
+                  ),
+                  child: const Text("İptal"),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color.fromARGB(255, 166, 128, 199),
+                  ),
+                  onPressed: _isLoading
+                      ? null
+                      : () async {
+                          if (formKey.currentState!.validate()) {
+                            setState(() {
+                              _isLoading = true;
+                            });
+                            try {
+                              await account.changePassword(
+                                oldPasswordController.text,
+                                newPasswordController.text,
+                              );
+                              Navigator.of(context).pop();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Şifreniz başarıyla değiştirildi!"),
+                                  backgroundColor: Colors.green,
+                                ),
+                              ); // database güncellenmeli
+                            } on FirebaseAuthException catch (e) {
+                              String message = "Şifre değiştirilemedi.";
+                              if (e.code == 'invalid-credential') {
+                                message = "Mevcut şifre yanlış.";
+                              } else if (e.code == 'weak-password') {
+                                message = "Yeni şifre çok zayıf.";
+                              } else if (e.code == 'requires-recent-login') {
+                                message =
+                                    "Güvenlik için lütfen tekrar giriş yaptıktan sonra deneyin.";
+                              }
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(message),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text("Hata: ${e.toString()}"),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            } finally {
+                              setState(() {
+                                _isLoading = false;
+                              });
+                            }
+                          }
+                        },
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text("Kaydet"),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -330,6 +361,74 @@ class _AccountScreenState extends State<AccountScreen> {
     );
   }
 
+  void _deleteAccount(BuildContext context, AccountController account) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Hesabı Sil"),
+          content: const Text(
+            "Hesabınızı kalıcı olarak silmek istediğinize emin misiniz? Bu işlem geri alınamaz, notlarınız ve görevleriniz silinir.",
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text("İptal"),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              onPressed: () async {
+                try {
+                  await account.deleteAccount();
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Hesabınız başarıyla silindi."),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const LoginScreen(),
+                    ),
+                  );
+                } on FirebaseAuthException catch (e) {
+                  String message = 'Hesabı silerken bir hata oluştu';
+                  if (e.code == 'requires-recent-login') {
+                    message =
+                        'Güvenlik nedeniyle lütfen tekrar giriş yaptıktan sonra hesabınızı silin.';
+                  } else if (e.code == 'wrong-password') {
+                    message = 'Şifreniz yanlış.';
+                  }
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(message),
+                      backgroundColor: Colors.redAccent,
+                    ),
+                  );
+                } catch (e) {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        "Hesap silinirken bir hata oluştu: ${e.toString()}",
+                      ),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              child: const Text("Sil"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthController>(context);
@@ -380,13 +479,15 @@ class _AccountScreenState extends State<AccountScreen> {
 
               AccountSettingsSection(
                 auth: auth,
+                account: account,
                 onUpdateAccountInfo: _updateAccountInfo,
+                onDeleteAccount: _deleteAccount,
               ),
 
               const SizedBox(height: 10),
 
               ChangePasswordSection(
-                auth: auth,
+                account: account,
                 onChangePassword: _changePassword,
               ),
 

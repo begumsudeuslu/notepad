@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:notepad/controllers/account_controller.dart';
+import 'package:notepad/repositories/account_repository_imp.dart';
 import 'package:provider/provider.dart';
 import 'screens/home_screen.dart';
+import 'package:notepad/databases/database.dart';
 import 'controllers/note_controller.dart';
 import 'controllers/task_controller.dart';
 import 'controllers/auth_controller.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'package:notepad/repositories/auth_repository_imp.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
@@ -27,8 +32,12 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (context) => NoteController()),
         ChangeNotifierProvider(create: (context) => TaskController()),
-        ChangeNotifierProvider(create: (context) => AuthController()),
-        ChangeNotifierProvider(create: (context) => AccountController()),
+        ChangeNotifierProvider(
+          create: (context) => AuthController(AuthRepositoryImp()),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => AccountController(AccountRepositoryImp()),
+        ),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

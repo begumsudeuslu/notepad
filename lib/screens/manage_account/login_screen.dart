@@ -1,6 +1,10 @@
+// login_screen.dart
 import 'package:flutter/material.dart';
-import 'package:notepad/controllers/auth_controller.dart';
 import 'package:provider/provider.dart';
+import 'register_screen.dart';
+import 'forgot_password_screen.dart';
+import '../../controllers/auth_controller.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -14,6 +18,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
 
+  // signin
   void _handleLogin() async {
     setState(() {
       _isLoading = true;
@@ -24,11 +29,33 @@ class _LoginScreenState extends State<LoginScreen> {
         context,
         listen: false,
       ).login(_emailController.text, _passwordController.text);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Giriş işlemi başarılı!"),
+          backgroundColor: Colors.green,
+        ),
+      );
+
       Navigator.pop(context);
+    } on FirebaseAuthException catch (e) {
+      String message = "Giriş sırasında bir hata oluştu. (firebase)";
+
+      if (e.code == 'user-not-found') {
+        message = "Bu e-posta adresine ait bir kullanıcı bulunamadı.";
+      } else if (e.code == 'wrong-password' || e.code == 'invalid-credential') {
+        message = "Yanlış şifre. Lütfen tekrar deneyin.";
+      } else if (e.code == 'invalid-email') {
+        message = "Lütfen geçerli bir e-posta adresi girin.";
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message), backgroundColor: Colors.redAccent),
+      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(e.toString().replaceAll("Exception: ", "")),
+          content: Text(e.toString()),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -39,34 +66,20 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _handleGuestLogin() async {
-    setState(() {
-      _isLoading = true;
-    });
-    try {
-      await Provider.of<AuthController>(
-        context,
-        listen: false,
-      ).signInAnonymously();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Misafir olarak giriş başarılı"),
-          backgroundColor: Colors.green,
-        ),
-      );
-      Navigator.pop(context);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString().replaceAll("Exception: ", "")),
-          backgroundColor: Colors.redAccent,
-        ),
-      );
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
+  // forgot_password
+  void _goToForgotPassword() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const ForgotPasswordScreen()),
+    );
+  }
+
+  // register
+  void _goToRegister() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const RegisterScreen()),
+    );
   }
 
   @override
@@ -84,13 +97,15 @@ class _LoginScreenState extends State<LoginScreen> {
           'Giriş Yap',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: const Color.fromARGB(255, 166, 128, 199),
+
+        backgroundColor: Color.fromARGB(255, 166, 128, 199),
         centerTitle: true,
         elevation: 0,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
         ),
       ),
+
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -102,6 +117,8 @@ class _LoginScreenState extends State<LoginScreen> {
               color: Color(0xFFC3A5DE),
             ),
             const SizedBox(height: 10),
+
+            // Başlık
             const Text(
               'Hesabınıza Giriş Yapın',
               textAlign: TextAlign.center,
@@ -112,70 +129,54 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
             const SizedBox(height: 20),
+
+            // E-posta Girişi
             TextField(
               controller: _emailController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'E-posta',
                 hintText: 'ornek@mail.com',
-                border: const OutlineInputBorder(
+                border: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(10)),
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(
-                    color: Color.fromARGB(255, 173, 134, 207),
-                    width: 2.0,
-                  ),
-                ),
-                prefixIcon: const Icon(
-                  Icons.email,
-                  color: Color.fromARGB(255, 173, 134, 207),
-                ),
+                prefixIcon: Icon(Icons.email),
               ),
               keyboardType: TextInputType.emailAddress,
             ),
             const SizedBox(height: 15),
+
+            // Şifre Girişi
             TextField(
               controller: _passwordController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Şifre',
-                border: const OutlineInputBorder(
+                border: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(10)),
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(
-                    color: Color.fromARGB(255, 173, 134, 207),
-                    width: 2.0,
-                  ),
-                ),
-                prefixIcon: const Icon(
-                  Icons.lock,
-                  color: Color.fromARGB(255, 173, 134, 207),
-                ),
+                prefixIcon: Icon(Icons.lock),
               ),
               obscureText: true,
             ),
             const SizedBox(height: 10),
+
+            // Şifremi Unuttum Butonu
             Align(
               alignment: Alignment.centerRight,
               child: TextButton(
-                onPressed:
-                    () {}, // Bu butona basıldığında ne yapılacağını belirlemelisiniz
+                onPressed: _goToForgotPassword,
                 child: const Text(
                   'Şifremi Unuttum?',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(color: Colors.black),
                 ),
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 20),
+
+            // Giriş Yap Butonu
             ElevatedButton(
               onPressed: _isLoading ? null : _handleLogin,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color.fromARGB(255, 173, 134, 207),
+                backgroundColor: Color.fromARGB(255, 173, 134, 207),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 15),
                 shape: RoundedRectangleBorder(
@@ -185,25 +186,33 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               child: _isLoading
                   ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text('Giriş Yap'),
+                  : Text('Giriş Yap'),
             ),
-            const SizedBox(height: 15),
+            const SizedBox(height: 20),
+
+            // Kayıt Ol Butonu
             TextButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/register');
-              },
+              onPressed: _goToRegister,
               child: const Text(
-                'Hesabın yok mu? Kayıt ol',
+                "Hesabın yok mu? Kayıt ol",
                 style: TextStyle(
                   color: Colors.black,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ),
+
+            const SizedBox(height: 1),
             TextButton(
-              onPressed: _handleGuestLogin,
+              onPressed: () {
+                Provider.of<AuthController>(
+                  context,
+                  listen: false,
+                ).guestLogIn();
+                Navigator.pop(context);
+              },
               child: const Text(
-                'Misafir olarak devam et',
+                "Misafir kullanıcı olarak devam et",
                 style: TextStyle(
                   color: Colors.black,
                   fontWeight: FontWeight.bold,
